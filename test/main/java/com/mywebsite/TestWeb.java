@@ -1,6 +1,6 @@
 package test.main.java.com.mywebsite;
 
-import main.java.com.mywebsite.Main;
+import main.java.com.Filter.Main;
 import org.junit.jupiter.api.*;
 
 class TestWeb

@@ -1,10 +1,8 @@
-package main.java.com.mywebsite.Data;
+package main.java.com.Filter.Data;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Locale;
 
 @NoArgsConstructor
 @Getter
@@ -26,7 +24,7 @@ public class FileSrcData {
     String ZEITZONE;
     int CALC_LOCALE;
     boolean SOMMERZEIT;
-    char ACTIVE;
+    String ACTIVE;
 
     String header_ISO_3166_1_ALPHA_2;
     String header_ISO_3166_1_ALPHA_2_REGION_CODE;
