@@ -64,22 +64,18 @@ public class DatabaseSQLite extends Database{
             logger.error(e);
         }
     }
-    /**
-     * get data without sensible information
-     */
+
+    @Override
     public ArrayList<FileSrcData> getData(){
-        return getDataFromDB(
-                "SELECT * FROM " + Database.tableName + ";",
-                false);
+        return getDataFromDB("SELECT * FROM " + Database.tableName + " limit " + LIMIT_PRINT_DATA + ";");
     }
 
     /**
      * get data with all information
      */
+    @Override
     public ArrayList<FileSrcData> getAllData(){
-        return getDataFromDB(
-                "SELECT * FROM " + Database.tableName + ";",
-                false);
+        return getDataFromDB("SELECT * FROM " + Database.tableName + ";");
     }
 
     /**
@@ -160,6 +156,11 @@ public class DatabaseSQLite extends Database{
     }
 
     @Override
+    public String getCityByPostalCode(int postalCode) {
+        return getCityFromDB(postalCode);
+    }
+
+    @Override
     public boolean insertData(FileSrcData fileSrcData)
     {
         try {
@@ -222,8 +223,7 @@ public class DatabaseSQLite extends Database{
         logger.info("");
         try {
             Table table = Table.read()
-                    .db(executeGet("SELECT * FROM " + Database.tableName + ";"))
-                    .first(countData);
+                    .db(executeGet("SELECT * FROM " + Database.tableName + "  limit " + countData + ";"));
             logger.info(table.print());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -255,7 +255,7 @@ public class DatabaseSQLite extends Database{
 
     @Override
     public void printInfo() {
-        logger.info("Database has " + getData().size() + " count of data saved.");
+        logger.info("Database has " + getCountOfData() + " count of data saved.");
     }
 
     /**
@@ -336,12 +336,12 @@ public class DatabaseSQLite extends Database{
         return 0;
     }
 
-    ArrayList<FileSrcData> getDataFromDB(String sql, boolean admin){
+    ArrayList<FileSrcData> getDataFromDB(String sql){
         ResultSet resultSet = executeGet(sql);
     	ArrayList<FileSrcData> data = new ArrayList<FileSrcData>();
         try{
             FileSrcData fileSrcData;
-            while(resultSet != null && resultSet.next())            {
+            while(resultSet != null && resultSet.next()){
                 fileSrcData = new FileSrcData();
                 fileSrcData.setISO_3166_1_ALPHA_2(
                         resultSet.getString("ISO_3166_1_ALPHA_2")
@@ -398,6 +398,35 @@ public class DatabaseSQLite extends Database{
         	logger.error(e);
         }
         return data;
+    }
+
+    String getCityFromDB(int postalCode){
+        logger.info(getCityWherePostalCodeNotNull());
+        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL = " + postalCode + ";");
+        String result = null;
+        try{
+            if(resultSet != null && resultSet.next()){
+                result = resultSet.getString(1);
+            }
+            close(resultSet);
+        } catch(SQLException e) {
+            logger.error(e);
+        }
+        return result;
+    }
+
+    List<String> getCityWherePostalCodeNotNull(){
+        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL != null;");
+        List<String> result = new ArrayList<>();
+        try{
+            while(resultSet != null && resultSet.next()){
+                result.add(resultSet.getString(1));
+            }
+            close(resultSet);
+        } catch(SQLException e) {
+            logger.error(e);
+        }
+        return result;
     }
 
     /**

@@ -25,6 +25,7 @@ public interface DatabaseInterface
      * @return list with all data
      */
     public ArrayList<FileSrcData> getAllData();
+
     public boolean insertData(FileSrcData fileSrcData);
 
     public void printInfo();

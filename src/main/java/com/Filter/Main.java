@@ -9,13 +9,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
 public class Main extends DAO {
 
     static Logger logger = LogManager.getLogger(Main.class.getName());
 
+    static final HashMap<String, Boolean> usedParameter = new HashMap<>();
+
     public static void main(String[] args){
+        usedParameter.put("distance", false);
+        usedParameter.put("plz", false);
         logger = LogManager.getLogger(Main.class.getName());
         logger.info("Program start ...");
         Database database = Database.getInstance();
@@ -28,30 +33,40 @@ public class Main extends DAO {
         int expectedDrivingDistance;
         int cityPostalCode;
 
-        //for(String arg: args){
+        boolean foundSomething = false;
         for(int i=0; i<args.length; i++){
+            // help
             if(args[i].equalsIgnoreCase("-help")
                     || args[i].equalsIgnoreCase("-h")
                     || args[i].equalsIgnoreCase("-?")
                     || args[i].equalsIgnoreCase("?")){
                     showHelp();
+            // print data
             } else if(args[i].equalsIgnoreCase("-print")
                     || args[i].equalsIgnoreCase("print-info")){
+                foundSomething = true;
                 database.printInfo();
+            // print data
             } else if(args[i].equalsIgnoreCase("-print-data")){
+                foundSomething = true;
                 database.printData();
+            // print data
             } else if(args[i].equalsIgnoreCase("-print-all")){
+                foundSomething = true;
                 database.printAllData();
+            // Parameter: distance
             } if(args[i].equalsIgnoreCase("-distance")){
+                foundSomething = true;
                 if(isLastPosition(args, i)) {
                     logger.info("Error: Number for expected driving distance missing.");
-                    System.exit(1);
+                    break;
                 } else {
                     if (NumberUtils.isDigits(args[i + 1])) {
                         expectedDrivingDistance = Integer.parseInt(args[i + 1]);
-                        logger.info("Expected driving distance: " + expectedDrivingDistance);
+                        logger.info("Expected driving distance: " + expectedDrivingDistance + " km");
                         if (expectedDrivingDistance < 0) {
                             logger.info("Error: Number must be greater than 0.");
+                            break;
                         } else {
                             float calcFactor = (float)
                                     expectedDrivingDistance > 0 && expectedDrivingDistance <= 5000
@@ -65,19 +80,34 @@ public class Main extends DAO {
                         }
                     }
                 }
+                // Parameter: plz
             } if(args[i].equalsIgnoreCase("-plz")){
+                foundSomething = true;
                 if(isLastPosition(args, i)) {
-                    logger.info("Error: Number for city postal code.");
-                    System.exit(1);
+                    logger.info("Error: Number for city postal code missing.");
+                    break;
                 } else {
                     if (NumberUtils.isDigits(args[i + 1])) {
                         cityPostalCode = Integer.parseInt(args[i + 1]);
-                        logger.info("City postal code: " + cityPostalCode);
+                        //logger.info("City postal code: " + cityPostalCode);
                         if (cityPostalCode < 0) {
                             logger.info("Error: Number must be greater than 0.");
+                            break;
                         } else {
+                            logger.info("City postal code: " + cityPostalCode + " (" + database.getCityByPostalCode(cityPostalCode) + ").");
                         }
                     }
+                }
+            }
+        }
+        // Show info (invalid parameter) if input is not known
+        if(! foundSomething && args.length > 0) {
+            if(args.length == 1) {
+                logger.info("Parameter(s) invalid: " + args[0]);
+            } else {
+                logger.info("Parameter(s) invalid: " + args[0]);
+                for(String temp: args){
+                    logger.info(temp);
                 }
             }
         }

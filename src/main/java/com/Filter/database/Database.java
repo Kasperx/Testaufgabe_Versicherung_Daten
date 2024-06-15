@@ -100,14 +100,11 @@ public abstract class Database extends DAO implements DatabaseInterface
 
     public abstract void insertData(List<FileSrcData> data, boolean test);
 
-    public static int getRandom()
-    {
-    	return new Random().nextInt(10000000) + 1000000;
-    }
-
     public abstract int getCountOfData();
 
     public abstract int getCalcFactor(int cityPostalCode);
+
+    public abstract String getCityByPostalCode(int postalCode);
 
 	/**
 	 * get properties

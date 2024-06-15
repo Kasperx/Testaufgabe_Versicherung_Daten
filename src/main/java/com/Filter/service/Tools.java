@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @NoArgsConstructor
 public class Tools {
@@ -52,6 +53,11 @@ public class Tools {
             logger.info(Arrays.toString(row));
         }
         */
+    }
+
+    public static int getRandom()
+    {
+        return new Random().nextInt(10000000) + 1000000;
     }
 
     public static List<String[]> readLineByLine(String path) {

@@ -141,6 +141,11 @@ public class DatabaseFile extends Database implements Serializable{
     }
 
     @Override
+    public String getCityByPostalCode(int postalCode) {
+        return null;
+    }
+
+    @Override
     public boolean insertData(FileSrcData data) {
         return false;
     }
