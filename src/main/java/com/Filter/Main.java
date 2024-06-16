@@ -49,22 +49,26 @@ public class Main extends DAO {
                 System.exit(0);
             } if(args[i].equalsIgnoreCase("-distance")){
                 foundSomething = true;
+                String optionName = "expected driving distance";
                 if(isLastPosition(args, i)) {
-                    logger.info("Found option for expected driving distance.");
-                    logger.error("Error: Number for expected driving distance missing.");
+                    logger.info("Found option for " + optionName + ".");
+                    logger.error("Error: Number for " + optionName + " missing.");
                     showHelp();
                     System.exit(1);
                 } else {
+                    logger.info("Found option for " + optionName + ".");
                     filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1]);
                 }
             } if(args[i].equalsIgnoreCase("-plz")){
                 foundSomething = true;
+                String optionName = "city postal code";
                 if(isLastPosition(args, i)) {
-                    logger.info("Found option for city postal code.");
-                    logger.error("Error: Number for city postal code missing.");
+                    logger.info("Found option for " + optionName + ".");
+                    logger.error("Error: Number for " + optionName + " missing.");
                     showHelp();
                     System.exit(1);
                 } else {
+                    logger.info("Found option for " + optionName + ".");
                     filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1]);
                 }
             }
