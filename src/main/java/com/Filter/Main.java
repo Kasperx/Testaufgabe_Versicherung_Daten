@@ -85,22 +85,6 @@ public class Main extends DAO {
         logger.info("Bye");
     }
 
-    static enum ParameterInput {
-        EXPECTED_DISTANCE("expected driving distance = -distance"),
-        CITY_POSTAL_CODE("city postal code = -plz");
-
-        private final String value;
-
-        private ParameterInput(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value;
-        }
-    }
-
     static void filterParameter(ParameterInput input, String parameter){
 
         int expectedDrivingDistance;
