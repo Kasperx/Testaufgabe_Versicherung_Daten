@@ -49,26 +49,24 @@ public class Main extends DAO {
                 System.exit(0);
             } if(args[i].equalsIgnoreCase("-distance")){
                 foundSomething = true;
-                String optionName = "expected driving distance";
                 if(isLastPosition(args, i)) {
-                    logger.info("Found option for " + optionName + ".");
-                    logger.error("Error: Number for " + optionName + " missing.");
+                    logger.info("Found option for expected " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
+                    logger.error("Error: Number for expected " + ParameterInput.EXPECTED_DISTANCE.toString() + " missing.");
                     showHelp();
                     System.exit(1);
                 } else {
-                    logger.info("Found option for " + optionName + ".");
+                    logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
                     filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1]);
                 }
             } if(args[i].equalsIgnoreCase("-plz")){
                 foundSomething = true;
-                String optionName = "city postal code";
                 if(isLastPosition(args, i)) {
-                    logger.info("Found option for " + optionName + ".");
-                    logger.error("Error: Number for " + optionName + " missing.");
+                    logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
+                    logger.error("Error: Number for " + ParameterInput.CITY_POSTAL_CODE.toString() + " missing.");
                     showHelp();
                     System.exit(1);
                 } else {
-                    logger.info("Found option for " + optionName + ".");
+                    logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
                     filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1]);
                 }
             }
@@ -88,8 +86,19 @@ public class Main extends DAO {
     }
 
     static enum ParameterInput {
-        EXPECTED_DISTANCE,
-        CITY_POSTAL_CODE;
+        EXPECTED_DISTANCE("expected driving distance = -distance"),
+        CITY_POSTAL_CODE("city postal code = -plz");
+
+        private final String value;
+
+        private ParameterInput(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 
     static void filterParameter(ParameterInput input, String parameter){
@@ -125,7 +134,7 @@ public class Main extends DAO {
                         }
                 }
             } else {
-                logger.info("Error: Parameter must be a number.");
+                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
             }
         }
     }
