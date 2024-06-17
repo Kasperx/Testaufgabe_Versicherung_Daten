@@ -29,7 +29,7 @@ public abstract class Database
 
     static DatabaseType databaseType;
 
-    public static enum DatabaseType{
+    public enum DatabaseType{
         sqlite("sqlite"),
         file("file");
         String value = null;
@@ -95,44 +95,4 @@ public abstract class Database
     public abstract int getCalcFactor(int cityPostalCode);
 
     public abstract String getCityByPostalCode(int postalCode);
-
-	/**
-	 * get properties
-	 * @param filename
-	 * @return Map<String, String>
-	 */
-    private Map<String, String> getProperties(String filename){
-        if(StringUtils.isNotBlank(filename) && new File(filename).exists()){
-            try (BufferedReader br = new BufferedReader(new FileReader(filename));) {
-                String line = "";
-                HashMap<String, String> mapFromFile = new HashMap<String, String>();
-                while ((line = br.readLine()) != null) {
-                    String[] parts = line.split("=");
-                    String name = parts[0].trim();
-                    String value = parts[1].trim();
-                    if(StringUtils.isNotBlank(name)
-                            && StringUtils.isNotBlank(value)) {
-                        mapFromFile.put(name, value);
-                    }
-                }
-                this.mapFromFile = mapFromFile;
-                return mapFromFile;
-            } catch (Exception e) {
-                logger.error(e);
-            }
-        } else {
-            logger.info("File '"+filename+"' does not exist");
-        }
-        return null;
-    }
-    /**
-     * load property
-     * @param keyname
-     * @return
-     */
-    public String getProperty(String keyname){
-        return StringUtils.isNotBlank(keyname)
-                ? mapFromFile.get(keyname)
-                : null;
-    }
 }

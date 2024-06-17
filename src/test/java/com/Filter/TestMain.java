@@ -9,16 +9,12 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 public class TestMain {
 
     static Database database;
-
-    private static final Logger log = LogManager.getLogger(TestMain.class);
 
     static Main main;
 
