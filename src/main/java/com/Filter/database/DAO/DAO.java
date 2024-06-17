@@ -1,6 +1,14 @@
 package main.java.com.Filter.database.DAO;
 
+import main.java.com.Filter.Data.FileSrcData;
+import main.java.com.Filter.service.Tools;
+
+import java.io.File;
+import java.util.List;
+
 public class DAO{
+
+    protected static String fileNameSrc = System.getProperty("user.dir") + File.separator + "postcodes.csv";
 
     protected final static String tableName = "Bewegungsdaten";
 

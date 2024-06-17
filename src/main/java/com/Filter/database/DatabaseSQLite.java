@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 import tech.tablesaw.api.Table;
 
 public class DatabaseSQLite extends Database{
-    String path = System.getProperty("user.dir")+"/test.db";
+    String path = System.getProperty("user.dir")+"/database.db";
 
     Connection connection = null;
 
@@ -34,31 +34,19 @@ public class DatabaseSQLite extends Database{
             if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
-            connect(true);
+            connect();
         } catch(IOException e) {
             logger.error(e);
         }
     }
-    /**
-     * connect to database
-     */
+
     public void connect()
-    {
-    	connect(false);
-    }
-    /**
-     * connect to database
-     * @param showInfo
-     */
-    public void connect(boolean showInfo)
     {
         try{
         	if(connection == null || connection.isClosed()){
         		Class.forName("org.sqlite.JDBC");
         		connection = DriverManager.getConnection("jdbc:sqlite:"+path);
-        		if(showInfo){
-        			logger.debug("Connected to database '"+path+"'.");
-        		}
+                logger.debug("Connected to database '"+path+"'.");
         	}
         } catch(Exception e) {
             logger.error(e);
@@ -81,8 +69,8 @@ public class DatabaseSQLite extends Database{
     /**
      * if permitted: create Database If Not Exists
      */
-    public boolean createDatabaseIfNotExists()
-    {
+    public boolean createDatabaseIfNotExists(){
+        connect();
         if(permitCreateDB && getCountOfData() == 0) {
             //executeSet("remove from table test");
             //executeSet("drop database if exists test");
@@ -141,13 +129,18 @@ public class DatabaseSQLite extends Database{
 
     @Override
     public int getCountOfData() {
-        ResultSet resultSet = executeGet("select count(*) from "+ DAO.tableName);
-        try {
-            return resultSet.getInt(1);
-        } catch (Exception e){
-            logger.error(e);
-            return 0;
+        connect();
+        if(dbTableExists()){
+            try(ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");){
+                if(resultSet != null && resultSet.next()){
+                    return resultSet.getInt(1);
+                }
+            } catch (Exception e) {
+                logger.error(e);
+                return 0;
+            }
         }
+        return 0;
     }
 
     @Override
@@ -250,7 +243,7 @@ public class DatabaseSQLite extends Database{
 
     @Override
     public boolean isDBEmpty() {
-        return getCountOfDataFromDB() <= 0;
+        return getCountOfData() <= 0;
     }
 
     @Override
@@ -272,6 +265,15 @@ public class DatabaseSQLite extends Database{
         } catch(SQLException e) {
             logger.error(e);
             return null;
+        }
+    }
+
+    boolean dbTableExists(){
+        try(ResultSet resultSet = executeGet("SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "';");){
+            return resultSet.getRow() > 0;
+        } catch (Exception e){
+            logger.error(e);
+            return false;
         }
     }
 
@@ -323,18 +325,22 @@ public class DatabaseSQLite extends Database{
         logger.debug(sql + " " + Arrays.asList(values));
         return preparedStatement;
     }
-
-    int getCountOfDataFromDB(){
-        ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");
-        try{
-            if(resultSet != null && resultSet.next()){
-                return resultSet.getInt(1);
+    /*
+    public int getCountOfDataFromDB(){
+        connect();
+        if(dbTableExists()){
+            try(ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");){
+                if(resultSet != null && resultSet.next()){
+                    return resultSet.getInt(1);
+                }
+            } catch (Exception e) {
+                logger.error(e);
+                return 0;
             }
-        } catch (Exception e) {
-            logger.error(e);
         }
         return 0;
     }
+    */
 
     ArrayList<FileSrcData> getDataFromDB(String sql){
         ResultSet resultSet = executeGet(sql);

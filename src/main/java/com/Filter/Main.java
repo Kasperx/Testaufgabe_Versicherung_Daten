@@ -22,9 +22,10 @@ public class Main extends DAO {
         logger.info("Program start ...");
         Database database = Database.getInstance();
         if(database.isDBEmpty()) {
-            List<FileSrcData> fileSrcData = Tools.getDataFromFile(System.getProperty("user.dir") + File.separator + "postcodes.csv");
-            database.createDatabaseIfNotExists();
-            database.insertData(fileSrcData, true);
+            List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
+            if(database.createDatabaseIfNotExists()) {
+                database.insertData(fileSrcData, true);
+            }
         }
         boolean foundSomething = false;
         for(int i=0; i<args.length; i++){
