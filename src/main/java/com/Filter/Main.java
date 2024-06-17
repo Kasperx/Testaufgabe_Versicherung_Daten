@@ -21,12 +21,7 @@ public class Main extends DAO {
         logger = LogManager.getLogger(Main.class.getName());
         logger.info("Program start ...");
         Database database = Database.getInstance();
-        if(database.isDBEmpty()) {
-            List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
-            if(database.createDatabaseIfNotExists()) {
-                database.insertData(fileSrcData, true);
-            }
-        }
+        database.saveObjectsToDb(database);
         boolean foundSomething = false;
         for(int i=0; i<args.length; i++){
             if(args[i].equalsIgnoreCase("-help")
@@ -103,6 +98,7 @@ public class Main extends DAO {
                         } else {
                             logger.info("Calculated factor: " + Filter.getFactor(expectedDrivingDistance));
                         }
+                        break;
                     case CITY_POSTAL_CODE:
                         cityPostalCode = Integer.parseInt(parameter);
                         logger.info("Input number for city postal code: " + cityPostalCode);
@@ -111,6 +107,7 @@ public class Main extends DAO {
                         } else {
                             Filter.getCityName(database, cityPostalCode);
                         }
+                        break;
                 }
             } else {
                 logger.info("Error: Parameter is '" + parameter + "': must be a number.");

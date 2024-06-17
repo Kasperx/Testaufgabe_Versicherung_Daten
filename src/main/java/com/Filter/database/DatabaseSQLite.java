@@ -2,12 +2,7 @@ package main.java.com.Filter.database;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -269,9 +264,11 @@ public class DatabaseSQLite extends Database{
     }
 
     boolean dbTableExists(){
-        try(ResultSet resultSet = executeGet("SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "';");){
-            return resultSet.getRow() > 0;
-        } catch (Exception e){
+        try {
+            DatabaseMetaData databaseMetaData = connection.getMetaData();
+            ResultSet resultSet = databaseMetaData.getTables(null, null, tableName, new String[] {"TABLE"});
+            return resultSet.next();
+        } catch (SQLException e) {
             logger.error(e);
             return false;
         }

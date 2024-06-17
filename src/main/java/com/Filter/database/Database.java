@@ -12,6 +12,7 @@ import lombok.Setter;
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.database.Interfaces.DatabaseInterface;
+import main.java.com.Filter.service.Tools;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,6 +77,15 @@ public abstract class Database
                 yield new DatabaseSQLite();
             }
         };
+    }
+
+    public void saveObjectsToDb(Database database){
+        if(database.isDBEmpty()) {
+            List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
+            if(database.createDatabaseIfNotExists()) {
+                database.insertData(fileSrcData, true);
+            }
+        }
     }
 
     public abstract void connect();
