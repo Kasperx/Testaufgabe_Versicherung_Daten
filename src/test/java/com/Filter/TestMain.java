@@ -4,7 +4,6 @@ import main.java.com.Filter.Main;
 import main.java.com.Filter.database.Database;
 import main.java.com.Filter.database.DatabaseSQLite;
 import main.java.com.Filter.service.Filter;
-import main.java.com.Filter.service.Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,14 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 public class TestMain {
 
-    private static Database database;
+    static Database database;
 
     private static final Logger log = LogManager.getLogger(TestMain.class);
 
-    private static Main main;
+    static Main main;
 
     @BeforeAll
     @DisplayName("Test Main: instance != null")
