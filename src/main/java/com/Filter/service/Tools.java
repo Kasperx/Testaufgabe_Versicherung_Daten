@@ -60,6 +60,20 @@ public class Tools {
         return new Random().nextInt(10000000) + 1000000;
     }
 
+    public static int getRandomNumberWithCountOfDigits(int length){
+        return new Random().nextInt(
+                ((int)(Math.pow(10, length))-1
+                        - (int)(Math.pow(10, length-1)))
+                        + (int)(Math.pow(10, length-1))
+        );
+    }
+
+    public static int getRandomNumberWithMaxLength(int length){
+        return new Random().nextInt(
+                (length - 1) + 1
+        );
+    }
+
     public static List<String[]> readLineByLine(String path) {
         Path filePath = Paths.get(path);
         List<String[]> list = new ArrayList<>();

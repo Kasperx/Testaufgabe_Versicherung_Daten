@@ -3,6 +3,7 @@ package main.java.com.Filter;
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.database.Database;
+import main.java.com.Filter.service.Filter;
 import main.java.com.Filter.service.Tools;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -56,7 +57,7 @@ public class Main extends DAO {
                     System.exit(1);
                 } else {
                     logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
-                    filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1]);
+                    filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1], database);
                 }
             } if(args[i].equalsIgnoreCase("-plz")){
                 foundSomething = true;
@@ -67,7 +68,7 @@ public class Main extends DAO {
                     System.exit(1);
                 } else {
                     logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
-                    filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1]);
+                    filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1], database);
                 }
             }
         }
@@ -85,7 +86,7 @@ public class Main extends DAO {
         logger.info("Bye");
     }
 
-    static void filterParameter(ParameterInput input, String parameter){
+    static void filterParameter(ParameterInput input, String parameter, Database database){
 
         int expectedDrivingDistance;
         int cityPostalCode;
@@ -99,15 +100,7 @@ public class Main extends DAO {
                         if (expectedDrivingDistance < 0) {
                             logger.info("Error: Number must be greater than 0.");
                         } else {
-                            float calcFactor = (float)
-                                    expectedDrivingDistance > 0 && expectedDrivingDistance <= 5000
-                                    ? 0.5f
-                                    : expectedDrivingDistance > 5000 && expectedDrivingDistance <= 10000
-                                    ? 1.0f
-                                    : expectedDrivingDistance > 10000 && expectedDrivingDistance <= 20000
-                                    ? 1.5f
-                                    : 2.0f;
-                            logger.info("Calculated factor: " + calcFactor);
+                            logger.info("Calculated factor: " + Filter.getFactor(expectedDrivingDistance));
                         }
                     case CITY_POSTAL_CODE:
                         cityPostalCode = Integer.parseInt(parameter);
@@ -115,6 +108,7 @@ public class Main extends DAO {
                         if (cityPostalCode < 0) {
                             logger.info("Error: Number must be greater than 0 and a valid postal code.");
                         } else {
+                            Filter.getCityName(database, cityPostalCode);
                         }
                 }
             } else {

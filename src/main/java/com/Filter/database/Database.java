@@ -19,19 +19,17 @@ import org.apache.logging.log4j.Logger;
 @NoArgsConstructor
 @Getter
 @Setter
-public abstract class Database extends DAO implements DatabaseInterface
+public abstract class Database
+        extends DAO
+        implements DatabaseInterface
 {
     static Logger logger = LogManager.getLogger(Database.class.getName());
 
     protected boolean permitCreateDB = true;
-    /**
-     * enum for database use
-     * @author cgl
-     *
-     */
 
-    public static enum DatabaseType
-    {
+    static DatabaseType databaseType;
+
+    public static enum DatabaseType{
         sqlite("sqlite"),
         file("file");
         String value = null;
@@ -69,23 +67,15 @@ public abstract class Database extends DAO implements DatabaseInterface
      * @param source
      * @return
      */
-    public static Database getInstance(DatabaseType source)
-    {
-        Database data = null;
-        switch(source)
-        {
-            case file:
-                data = new DatabaseFile();
-                break;
-            case sqlite:
-                data = new DatabaseSQLite();
-                break;
-            default:
-            	logger.info("Not supported yet: source '"+source.value+"'. Using '"+DatabaseType.sqlite+"'.");
-                data = new DatabaseSQLite();
-                break;
-        }
-        return data;
+    public static Database getInstance(DatabaseType source){
+        return switch (source) {
+            case file -> new DatabaseFile();
+            case sqlite -> new DatabaseSQLite();
+            default -> {
+                logger.info("Not supported yet: source '" + source.value + "'. Using '" + DatabaseType.sqlite + "'.");
+                yield new DatabaseSQLite();
+            }
+        };
     }
 
     public abstract void connect();
