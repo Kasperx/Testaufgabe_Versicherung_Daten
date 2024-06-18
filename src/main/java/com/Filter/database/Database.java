@@ -82,7 +82,7 @@ public abstract class Database
     public void saveObjectsToDb(Database database){
         if(database.isDBEmpty()) {
             List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
-            if(database.createDatabaseIfNotExists()) {
+            if(fileSrcData != null && database.createDatabaseIfNotExists()){
                 database.insertData(fileSrcData, true);
             }
         }

@@ -95,7 +95,10 @@ public class Tools {
 
     public static List<FileSrcData> getDataFromFile(String path) {
         logger.info("Reading info, converting data to object ...");
-        if(StringUtils.isNotBlank(path)) {
+        if(StringUtils.isBlank(path) || ! new File(path).exists()){
+            logger.error("File with given path: '" + path + "' does not exist.");
+            return null;
+        } else {
             List<FileSrcData> fileSrcDataList = new ArrayList<>();
             FileSrcData fileSrcData = new FileSrcData();
             List<String[]> list = readLineByLine(path);
@@ -129,9 +132,6 @@ public class Tools {
             }
             logger.info("Got "+fileSrcDataList.size()+" objects from file.");
             return fileSrcDataList;
-        } else {
-            logger.error("Got no objects from file.");
-            return null;
         }
     }
 
