@@ -42,9 +42,10 @@ public class DatabaseFile extends Database implements Serializable{
         }
         catch(IOException e)
         {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
+
     public DatabaseFile(int id, String name, String lastname, String pw, boolean admin)
     {
         path = System.getProperty("user.dir")+"/test";
@@ -63,6 +64,7 @@ public class DatabaseFile extends Database implements Serializable{
         this.pw = pw;
         this.admin = admin;
     }
+
 	public ArrayList<FileSrcData> getData(){
         ArrayList<FileSrcData> data = new ArrayList<>();
         try(ObjectInputStream inFile = new ObjectInputStream(new FileInputStream(path))){
@@ -80,6 +82,7 @@ public class DatabaseFile extends Database implements Serializable{
         }
         return data;
     }
+
     public int getId(String name)
     {
         return -1;
@@ -92,32 +95,6 @@ public class DatabaseFile extends Database implements Serializable{
             logger.error(e);
         }
         return data;
-    }
-
-    public void insertData(){
-        /*
-        int id=0;
-        HashMap <String[], Integer> result = getNewData();
-        ///////////////////////////////////////////////////////////
-        ArrayList <DatabaseFile> data = new ArrayList<DatabaseFile>();
-        data.add(new DatabaseFile());
-        for(Entry <String[], Integer> entry: result.entrySet()){
-            data.add(new DatabaseFile(
-                  id++,
-                  entry.getKey()[0],
-                  entry.getKey()[1],
-                  String.valueOf(entry.getValue()),
-                  false
-                  ));
-        }
-        try(ObjectOutputStream write= new ObjectOutputStream (new FileOutputStream(path))){
-            for(DatabaseFile temp: data){
-                write.writeObject((Object)temp);
-            }
-        } catch(IOException e) {
-            logger.error(e);
-        }
-        */
     }
 
     @Override
@@ -162,9 +139,7 @@ public class DatabaseFile extends Database implements Serializable{
     public void printData(int countData) {}
 
     @Override
-    public void printAllData() {
-
-    }
+    public void printAllData() {}
 
     @Override
     public boolean isDBEmpty() {

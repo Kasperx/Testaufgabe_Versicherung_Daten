@@ -35,8 +35,7 @@ public class DatabaseSQLite extends Database{
         }
     }
 
-    public void connect()
-    {
+    public void connect(){
         try{
         	if(connection == null || connection.isClosed()){
         		Class.forName("org.sqlite.JDBC");
@@ -304,40 +303,6 @@ public class DatabaseSQLite extends Database{
         	logger.error(e);
         }
     }
-
-    /**
-     * 
-     * @param connection
-     * @param sql
-     * @param values
-     * @return
-     * @throws SQLException
-     */
-    public static PreparedStatement prepareStatement(Connection connection, String sql, Object... values)
-            throws SQLException{
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        for (int i = 0; i < values.length; i++) {
-            preparedStatement.setObject(i + 1, values[i]);
-        }
-        logger.debug(sql + " " + Arrays.asList(values));
-        return preparedStatement;
-    }
-    /*
-    public int getCountOfDataFromDB(){
-        connect();
-        if(dbTableExists()){
-            try(ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");){
-                if(resultSet != null && resultSet.next()){
-                    return resultSet.getInt(1);
-                }
-            } catch (Exception e) {
-                logger.error(e);
-                return 0;
-            }
-        }
-        return 0;
-    }
-    */
 
     ArrayList<FileSrcData> getDataFromDB(String sql){
         ResultSet resultSet = executeGet(sql);
