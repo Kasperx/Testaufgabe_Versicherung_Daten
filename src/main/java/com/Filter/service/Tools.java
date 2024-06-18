@@ -1,22 +1,21 @@
-package main.java.com.mywebsite.service;
+package main.java.com.Filter.service;
 
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import lombok.NoArgsConstructor;
-import main.java.com.mywebsite.Data.FileSrcData;
+import main.java.com.Filter.Data.FileSrcData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 @NoArgsConstructor
 public class Tools {
@@ -56,6 +55,25 @@ public class Tools {
         */
     }
 
+    public static int getRandom()
+    {
+        return new Random().nextInt(10000000) + 1000000;
+    }
+
+    public static int getRandomNumberWithCountOfDigits(int length){
+        return new Random().nextInt(
+                ((int)(Math.pow(10, length))-1
+                        - (int)(Math.pow(10, length-1)))
+                        + (int)(Math.pow(10, length-1))
+        );
+    }
+
+    public static int getRandomNumberWithMaxLength(int length){
+        return new Random().nextInt(
+                (length - 1) + 1
+        );
+    }
+
     public static List<String[]> readLineByLine(String path) {
         Path filePath = Paths.get(path);
         List<String[]> list = new ArrayList<>();
@@ -75,7 +93,7 @@ public class Tools {
         return list;
     }
 
-    public static List<FileSrcData> getObjectFromFile(String path) {
+    public static List<FileSrcData> getDataFromFile(String path) {
         logger.info("Reading info, converting data to object ...");
         if(StringUtils.isNotBlank(path)) {
             List<FileSrcData> fileSrcDataList = new ArrayList<>();
@@ -106,7 +124,7 @@ public class Tools {
                 fileSrcData.setSOMMERZEIT(
                         stringToBoolean(line[count++])
                 );
-                fileSrcData.setACTIVE(line[count++].charAt(0));
+                fileSrcData.setACTIVE(line[count++]);
                 fileSrcDataList.add(fileSrcData);
             }
             logger.info("Got "+fileSrcDataList.size()+" objects from file.");
@@ -124,5 +142,80 @@ public class Tools {
     }
     public static boolean intToBoolean (int bool){
         return bool == 1;
+    }
+
+    /**
+     * convert string to int value
+     * @param text
+     * @return
+     */
+    public static int toInt(String text){
+        try{
+            if(StringUtils.isBlank(text)) {
+                return 0;
+            } else {
+                return Integer.parseInt(text);
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            return 0;
+        }
+    }
+
+    public static String writeFirstCharacterUpperCase(String text){
+        if(text.isEmpty()) {
+            return text;
+        } else {
+            char [] newText = new char[text.length()];
+            for(int i=0; i<text.length(); i++) {
+                if(i == 0) {
+                    newText[i] = text.charAt(i);
+                    String temp = String.valueOf(newText).toUpperCase();
+                    newText[i] = temp.toCharArray()[0];
+                } else {
+                    newText[i] = text.charAt(i);
+                }
+            }
+            text = String.valueOf(newText);
+        }
+        return text;
+    }
+
+    public static String readFile (String fileName){
+        if(StringUtils.isNotBlank(fileName)) {
+            List<String> filecontent = loadFile(fileName);
+            if (filecontent == null) {
+                return null;
+            } else {
+                logger.info("Reading file: " + fileName);
+                String text = "";
+                for (String temp : filecontent) {
+                    text += temp + "\n";
+                }
+                filecontent.clear();
+                return text;
+            }
+        } else {
+            logger.error("Filename is empty.");
+            return null;
+        }
+    }
+
+    public static List<String> loadFile(String fpath){
+        try{
+            if(new File(fpath).exists()){
+                return new ArrayList<String>(
+                        Files.readAllLines(
+                                Paths.get(fpath),
+                                StandardCharsets.UTF_8)
+                );
+            } else {
+                new File(fpath).createNewFile();
+                return new ArrayList<String>();
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            return null;
+        }
     }
 }

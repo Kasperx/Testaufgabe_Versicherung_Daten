@@ -1,116 +1,75 @@
-package main.java.com.mywebsite.database;
+package main.java.com.Filter.database;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import main.java.com.mywebsite.Data.FileSrcData;
-import main.java.com.mywebsite.database.DAO.Dao_DBConnect;
-import main.java.com.mywebsite.service.Tools;
+import main.java.com.Filter.Data.FileSrcData;
+import main.java.com.Filter.database.DAO.DAO;
+import main.java.com.Filter.service.Tools;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import tech.tablesaw.api.Table;
 
-public class DatabaseSQLite extends Database
-{  
-    String path = System.getProperty("user.dir")+"/test.db";
+public class DatabaseSQLite extends Database{
+    String path = System.getProperty("user.dir")+"/database.db";
 
     Connection connection = null;
 
     boolean test = true;
 
+    static Logger logger = LogManager.getLogger(DatabaseSQLite.class.getName());
+
     public DatabaseSQLite(){
-        logger = LogManager.getLogger(DatabaseSQLite.class.getName());
         File dbFile = new File(path);
         try{
             if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
-            connect(true);
+            connect();
         } catch(IOException e) {
             logger.error(e);
         }
     }
-    /**
-     * connect to database
-     */
-    public void connect()
-    {
-    	connect(false);
-    }
-    /**
-     * connect to database
-     * @param showInfo
-     */
-    public void connect(boolean showInfo)
-    {
+
+    public void connect(){
         try{
         	if(connection == null || connection.isClosed()){
         		Class.forName("org.sqlite.JDBC");
         		connection = DriverManager.getConnection("jdbc:sqlite:"+path);
-        		if(showInfo){
-        			logger.info("Connected to database '"+path+"'.");
-        		}
+                logger.debug("Connected to database '"+path+"'.");
         	}
         } catch(Exception e) {
             logger.error(e);
         }
     }
-    /**
-     * get data without sensible information
-     */
+
+    @Override
     public ArrayList<FileSrcData> getData(){
-        /*
-        String sql = ""
-        		+ "SELECT"
-        		+ " position,"
-        		+ " name,"
-                + " surname,"
-        		+ " action,"
-        		+ " action_name"
-        		+ " FROM"
-        		+ " person;";
-        return getDataFromDBWithoutHeader(sql, false);
-        */
-        return new ArrayList<>();
+        return getDataFromDB("SELECT * FROM " + Database.tableName + " limit " + LIMIT_PRINT_DATA + ";");
     }
 
     /**
      * get data with all information
      */
+    @Override
     public ArrayList<FileSrcData> getAllData(){
-        /*
-        String sql = "SELECT"
-                + " p.id,"
-                + " p.name,"
-                + " p.lastname,"
-                + " login.p_password as password,"
-                + " login.p_admin as admin"
-//                + " FROM person p, login l"
-                + " FROM person p"
-                + " inner join login on p.id = login.p_id;";
-        ArrayList<Person> data = getDataFromDBWithoutHeader(sql, true);
-        return data;
-        */
-        return new ArrayList<>();
+        return getDataFromDB("SELECT * FROM " + Database.tableName + ";");
     }
 
     /**
      * if permitted: create Database If Not Exists
      */
-    public boolean createDatabaseIfNotExists()
-    {
+    public boolean createDatabaseIfNotExists(){
+        connect();
         if(permitCreateDB && getCountOfData() == 0) {
             //executeSet("remove from table test");
             //executeSet("drop database if exists test");
             //////////////////////////////
-            executeSet("create table if not exists " + Dao_DBConnect.tableName + " ("
+            executeSet("create table if not exists " + DAO.tableName + " ("
                     + "id integer primary key autoincrement,"
                     + "ISO_3166_1_ALPHA_2 text,"
                     + "ISO_3166_1_ALPHA_2_REGION_CODE text,"
@@ -164,13 +123,28 @@ public class DatabaseSQLite extends Database
 
     @Override
     public int getCountOfData() {
-        ResultSet resultSet = executeGet("select count(*) from "+Dao_DBConnect.tableName);
-        try {
-            return resultSet.getInt(1);
-        } catch (Exception e){
-            logger.error(e);
-            return 0;
+        connect();
+        if(dbTableExists()){
+            try(ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");){
+                if(resultSet != null && resultSet.next()){
+                    return resultSet.getInt(1);
+                }
+            } catch (Exception e) {
+                logger.error(e);
+                return 0;
+            }
         }
+        return 0;
+    }
+
+    @Override
+    public int getCalcFactor(int cityPostalCode) {
+        return 0;
+    }
+
+    @Override
+    public String getCityByPostalCode(int postalCode) {
+        return getCityFromDB(postalCode);
     }
 
     @Override
@@ -178,7 +152,7 @@ public class DatabaseSQLite extends Database
     {
         try {
             String sql = ""
-                    +" insert into " + Dao_DBConnect.tableName + " ("
+                    +" insert into " + DAO.tableName + " ("
                     + "ISO_3166_1_ALPHA_2,"
                     + "ISO_3166_1_ALPHA_2_REGION_CODE,"
                     + "REGION1,"
@@ -220,14 +194,55 @@ public class DatabaseSQLite extends Database
             stmt.setString(count++, String.format("%."+COUNT_DIGITS_AFTER_COMMA+"f", fileSrcData.getLONGITUDE()));
             //stmt.setInt(count++, fileSrcData.getCALC_LOCALE());
             //stmt.setInt(count++, fileSrcData.getSOMMERZEIT());
-            stmt.setInt(count++, fileSrcData.getACTIVE());
+            stmt.setString(count++, fileSrcData.getACTIVE());
             logger.debug(stmt.toString());
             stmt.execute();
             close(null);
         } catch (Exception e) {
-            logger.error("insert into " + Dao_DBConnect.tableName, e);
+            logger.error("insert into " + DAO.tableName, e);
         }
         return false;
+    }
+
+    @Override
+    public void printData(int countData) {
+        logger.info("Printing first " + countData + " objects from db.");
+        logger.info("");
+        try {
+            Table table = Table.read()
+                    .db(executeGet("SELECT * FROM " + Database.tableName + "  limit " + countData + ";"));
+            logger.info(table.print());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void printData() {
+        printData(LIMIT_PRINT_DATA);
+    }
+
+    @Override
+    public void printAllData() {
+        //logger.info("Printing first 1000 objects from db.");
+        logger.info("");
+        try {
+            Table table = Table.read()
+                    .db(executeGet("SELECT * FROM " + Database.tableName + ";"));
+            logger.info(table.print());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean isDBEmpty() {
+        return getCountOfData() <= 0;
+    }
+
+    @Override
+    public void printInfo() {
+        logger.info("Database has " + getCountOfData() + " count of data saved.");
     }
 
     /**
@@ -235,8 +250,7 @@ public class DatabaseSQLite extends Database
      * @param sql
      * @return
      */
-    ResultSet executeGet(String sql)
-    {
+    ResultSet executeGet(String sql){
         try{
             logger.debug(sql);
             connect();
@@ -245,6 +259,17 @@ public class DatabaseSQLite extends Database
         } catch(SQLException e) {
             logger.error(e);
             return null;
+        }
+    }
+
+    boolean dbTableExists(){
+        try {
+            DatabaseMetaData databaseMetaData = connection.getMetaData();
+            ResultSet resultSet = databaseMetaData.getTables(null, null, tableName, new String[] {"TABLE"});
+            return resultSet.next();
+        } catch (SQLException e) {
+            logger.error(e);
+            return false;
         }
     }
 
@@ -279,33 +304,12 @@ public class DatabaseSQLite extends Database
         }
     }
 
-    /**
-     * 
-     * @param connection
-     * @param sql
-     * @param values
-     * @return
-     * @throws SQLException
-     */
-    public static PreparedStatement prepareStatement(Connection connection, String sql, Object... values)
-            throws SQLException{
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        for (int i = 0; i < values.length; i++) {
-            preparedStatement.setObject(i + 1, values[i]);
-        }
-        logger.debug(sql + " " + Arrays.asList(values));
-        return preparedStatement;
-    }
-
-    ArrayList<FileSrcData> getDataFromDB(String sql, boolean admin)
-    {
+    ArrayList<FileSrcData> getDataFromDB(String sql){
         ResultSet resultSet = executeGet(sql);
     	ArrayList<FileSrcData> data = new ArrayList<FileSrcData>();
-        try
-        {
+        try{
             FileSrcData fileSrcData;
-            while(resultSet != null && resultSet.next())
-            {
+            while(resultSet != null && resultSet.next()){
                 fileSrcData = new FileSrcData();
                 fileSrcData.setISO_3166_1_ALPHA_2(
                         resultSet.getString("ISO_3166_1_ALPHA_2")
@@ -353,7 +357,7 @@ public class DatabaseSQLite extends Database
                         Tools.intToBoolean(resultSet.getInt("SOMMERZEIT"))
                 );
                 fileSrcData.setACTIVE(
-                        resultSet.getString("ACTIVE").charAt(0)
+                        resultSet.getString("ACTIVE")
                 );
                 data.add(fileSrcData);
             }
@@ -364,14 +368,41 @@ public class DatabaseSQLite extends Database
         return data;
     }
 
+    String getCityFromDB(int postalCode){
+        logger.info(getCityWherePostalCodeNotNull());
+        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL = " + postalCode + ";");
+        String result = null;
+        try{
+            if(resultSet != null && resultSet.next()){
+                result = resultSet.getString(1);
+            }
+            close(resultSet);
+        } catch(SQLException e) {
+            logger.error(e);
+        }
+        return result;
+    }
+
+    List<String> getCityWherePostalCodeNotNull(){
+        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL != null;");
+        List<String> result = new ArrayList<>();
+        try{
+            while(resultSet != null && resultSet.next()){
+                result.add(resultSet.getString(1));
+            }
+            close(resultSet);
+        } catch(SQLException e) {
+            logger.error(e);
+        }
+        return result;
+    }
+
     /**
      * close db connection
      * @param resultSet
      */
-    private void close(ResultSet resultSet)
-    {
-    	try
-    	{
+    private void close(ResultSet resultSet){
+    	try{
     		if(resultSet != null && !resultSet.isClosed()){
     			resultSet.close();
     		} if(connection != null){

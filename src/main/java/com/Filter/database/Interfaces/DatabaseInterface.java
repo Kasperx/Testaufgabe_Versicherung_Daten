@@ -1,8 +1,8 @@
-package main.java.com.mywebsite.database.Interfaces;
+package main.java.com.Filter.database.Interfaces;
 
 import java.util.ArrayList;
 
-import main.java.com.mywebsite.Data.FileSrcData;
+import main.java.com.Filter.Data.FileSrcData;
 
 public interface DatabaseInterface
 {
@@ -25,5 +25,15 @@ public interface DatabaseInterface
      * @return list with all data
      */
     public ArrayList<FileSrcData> getAllData();
+
     public boolean insertData(FileSrcData fileSrcData);
+
+    public void printInfo();
+    public void printData();
+
+    public void printData(int countData);
+
+    public void printAllData();
+
+    public boolean isDBEmpty();
 }
