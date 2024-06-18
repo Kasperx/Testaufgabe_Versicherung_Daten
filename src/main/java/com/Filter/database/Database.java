@@ -1,8 +1,5 @@
 package main.java.com.Filter.database;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.sql.Connection;
 import java.util.*;
 
@@ -13,7 +10,6 @@ import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.database.Interfaces.DatabaseInterface;
 import main.java.com.Filter.service.Tools;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -79,12 +75,24 @@ public abstract class Database
         };
     }
 
-    public void saveObjectsToDb(Database database){
+    public DataSrc initDataSrc(Database database){
         if(database.isDBEmpty()) {
             List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
-            if(fileSrcData != null && database.createDatabaseIfNotExists()){
-                database.insertData(fileSrcData, true);
+            if(fileSrcData == null || fileSrcData.isEmpty()){
+                logger.error(DataSrc.SRC_FILE_NOT_FOUND.toString());
+                return DataSrc.SRC_FILE_NOT_FOUND;
+            } else {
+                if(database.createDatabaseIfNotExists()){
+                    database.insertData(fileSrcData, true);
+                    return DataSrc.OK;
+                } else {
+                    logger.error(DataSrc.DB_DOES_NOT_EXIST.toString());
+                    return DataSrc.DB_DOES_NOT_EXIST;
+                }
             }
+        } else {
+            logger.info("Database knows " + database.getCountOfData() + " data");
+            return DataSrc.OK;
         }
     }
 

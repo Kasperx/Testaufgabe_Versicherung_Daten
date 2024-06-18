@@ -94,7 +94,7 @@ public class Tools {
     }
 
     public static List<FileSrcData> getDataFromFile(String path) {
-        logger.info("Reading info, converting data to object ...");
+        logger.info("Reading info from src file, converting data to object ...");
         if(StringUtils.isBlank(path) || ! new File(path).exists()){
             logger.error("File with given path: '" + path + "' does not exist.");
             return null;
