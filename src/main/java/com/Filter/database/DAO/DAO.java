@@ -1,10 +1,6 @@
 package main.java.com.Filter.database.DAO;
 
-import main.java.com.Filter.Data.FileSrcData;
-import main.java.com.Filter.service.Tools;
-
 import java.io.File;
-import java.util.List;
 
 public class DAO{
 
@@ -16,6 +12,8 @@ public class DAO{
 
     protected static int LIMIT_PRINT_DATA = 10;
 
+    protected boolean permitCreateDB = true;
+
     public static enum ParameterInput {
         EXPECTED_DISTANCE("expected driving distance = -distance"),
         CITY_POSTAL_CODE("city postal code = -plz");
@@ -23,6 +21,25 @@ public class DAO{
         private final String value;
 
         private ParameterInput(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
+    public static enum DataSrc {
+        OK(""),
+        IS_EMPTY("Database is empty."),
+        DB_DOES_NOT_EXIST("Database is empty and program is not allowed to create data."),
+        SRC_FILE_NOT_FOUND("Database is empty and src file not found"),
+        SOMETHING_ELSE("Something else");
+
+        private final String value;
+
+        private DataSrc(String value) {
             this.value = value;
         }
 

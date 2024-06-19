@@ -1,17 +1,12 @@
 package main.java.com.Filter;
 
-import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.database.Database;
 import main.java.com.Filter.service.Filter;
-import main.java.com.Filter.service.Tools;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.File;
-import java.util.List;
 
 public class Main extends DAO {
 
@@ -21,7 +16,10 @@ public class Main extends DAO {
         logger = LogManager.getLogger(Main.class.getName());
         logger.info("Program start ...");
         Database database = Database.getInstance();
-        database.saveObjectsToDb(database);
+        if(database.initDataSrc(database) != DataSrc.OK){
+            showHelp(false);
+            System.exit(1);
+        }
         boolean foundSomething = false;
         for(int i=0; i<args.length; i++){
             if(args[i].equalsIgnoreCase("-help")
