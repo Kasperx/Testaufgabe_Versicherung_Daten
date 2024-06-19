@@ -1,0 +1,148 @@
+
+image: maven:3.8.3-openjdk-17
+
+variables:
+  MAVEN_OPTS: "-Djava.awt.headless=true -Dmaven.repo.local=./.m2/repository"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  #DOCKER: "docker:26-cli"
+  DOCKER: "docker:23.0.1-dind"
+  DEBIAN: "debian:oldstable-20240311-slim"
+
+cache:
+  paths:
+    #- .m2/repository
+    #- ./.m2/repository
+    - $CI_PROJECT_DIR/.m2/
+  # keep cache across branch
+  #key: maven-cache
+  key: "$CI_BUILD_REF_NAME"
+
+stages:
+  - build
+  - install
+  - test
+  - pack
+  - deploy
+  - start
+
+compile:
+  stage: build
+  script:
+    - echo "Compile java code"
+    - "mvn clean compile -Dmaven.test.skip $MAVEN_CLI_OPTS"
+
+install:
+  stage: install
+  dependencies:
+    - compile
+  script:
+    - echo "Compile java code"
+    - "mvn install -Dmaven.test.skip $MAVEN_CLI_OPTS"
+
+package:
+  stage: pack
+  only:
+    refs:
+      - master
+      - main
+  dependencies:
+    - test-with-junit
+    #- install
+  artifacts:
+    paths:
+      - "target/*.jar"
+  script:
+    - echo "Deploy to target folder"
+    - "mvn package -Dmaven.test.skip $MAVEN_CLI_OPTS"
+
+integration-test:
+  stage: test
+  only:
+    refs:
+      - master
+      - main
+  dependencies:
+    - install
+    #- package
+  script:
+    - "mvn verify $MAVEN_CLI_OPTS"
+  artifacts:
+    paths:
+      - target/
+
+test-with-junit:
+  stage: test
+  script:
+    - echo "Run tests (after compile)"
+    - "mvn test $MAVEN_CLI_OPTS"
+  dependencies:
+    - integration-test
+  artifacts:
+    paths:
+      - target/
+
+create-image-and-upload-to-gitlab.com:
+  stage: deploy
+  dependencies:
+    - package
+    #- test-with-junit
+    #- integration-test
+  only:
+    refs:
+      - master
+      - main
+  image: "$DOCKER"
+  when: manual
+  services:
+    #- name: docker:23.0.1-dind
+    - name: "$DOCKER"
+      alias: docker
+  variables:
+    DOCKER_TAG: "$CI_COMMIT_BRANCH"
+  before_script:
+    - echo "--- Test ---"
+    - echo "gitlab repo= $CI_GITLAB_REGISTRY"
+    - echo "gitlab username= $CI_GITLAB_REGISTRY_USER"
+    - echo "gitlab token= $CI_GITLAB_REGISTRY_TOKEN"
+    - echo "gitlab pw= $CI_GITLAB_REGISTRY_PW"
+    - echo "Preparing deploy to $CI_GITLAB_REGISTRY"
+    - echo "Docker login to $CI_GITLAB_REGISTRY"
+    - echo "Imagename= $DOCKER_TAG"
+    - echo "--- Test end ---"
+    - docker login "$CI_GITLAB_REGISTRY" -u "$CI_GITLAB_REGISTRY_USER" -p "$CI_GITLAB_REGISTRY_TOKEN"
+    - echo "Docker build '$CI_GITLAB_REGISTRY/$CI_GITLAB_REGISTRY_USER/java-with-spring-boot-server-with_db:test"
+    - docker build -t "$CI_GITLAB_REGISTRY"/"$CI_GITLAB_REGISTRY_USER"/testaufgabe:test .
+  script:
+    - echo "Preparing deploy to $CI_GITLAB_REGISTRY/my-spring-boot-test:test"
+    - docker push "$CI_GITLAB_REGISTRY"/"$CI_GITLAB_REGISTRY_USER"/testaufgabe:test
+
+upload-to-cloud-and-start:
+  stage: start
+  image: $DOCKER
+  dependencies:
+    - create-image-and-upload-to-gitlab.com
+  only:
+    refs:
+      - master
+      - main
+  variables:
+    DOCKER_HOST: ssh://web@"$URL"
+  services:
+    - name: "$DOCKER"
+      alias: docker
+  when: manual
+  before_script:
+    - apk update && apk add openssh-client bash
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - eval "$(ssh-agent -s)"
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | ssh-add -
+    - touch ~/.ssh/config
+    - touch ~/.ssh/known_hosts
+    - ssh-keyscan -H $URL >> ~/.ssh/known_hosts
+    - '[[ -f /.dockerinit ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - export DOCKER_HOST=ssh://web@$URL
+  script:
+    - echo "Upload and start image to $URL"
+    - docker stack deploy -c docker-compose.yml java-test
