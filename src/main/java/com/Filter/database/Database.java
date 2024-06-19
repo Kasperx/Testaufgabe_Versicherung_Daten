@@ -22,8 +22,6 @@ public abstract class Database
 {
     static Logger logger = LogManager.getLogger(Database.class.getName());
 
-    protected boolean permitCreateDB = true;
-
     static DatabaseType databaseType;
 
     public enum DatabaseType{
@@ -45,10 +43,6 @@ public abstract class Database
     protected String serverIp;
 
     protected String path;
-
-    boolean headerInUppercaseCharacter = true;
-
-    static HashMap<String, String> mapFromFile;
 
     /**
      * get instance

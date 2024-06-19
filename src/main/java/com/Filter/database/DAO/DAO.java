@@ -12,6 +12,8 @@ public class DAO{
 
     protected static int LIMIT_PRINT_DATA = 10;
 
+    protected boolean permitCreateDB = true;
+
     public static enum ParameterInput {
         EXPECTED_DISTANCE("expected driving distance = -distance"),
         CITY_POSTAL_CODE("city postal code = -plz");

@@ -1,9 +1,10 @@
 /bin/
 /target/
-test.db
+database.db
 favicon.ico
 .classpath
 .settings
 
 .idea
 java-jetty-webserver-minimal.iml
+postcodes.csv
