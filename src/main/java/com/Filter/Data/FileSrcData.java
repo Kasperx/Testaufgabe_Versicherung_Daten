@@ -3,6 +3,7 @@ package main.java.com.Filter.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 @NoArgsConstructor
 @Getter
@@ -16,6 +17,7 @@ public class FileSrcData {
     String REGION3;
     String REGION4;
     int POSTLEITZAHL;
+    // Location? Bezirk? Ort? (Nicht klar beschrieben)
     String ORT;
     String AREA1;
     String AREA2;
@@ -79,5 +81,18 @@ public class FileSrcData {
                 ", header_SOMMERZEIT='" + header_SOMMERZEIT + '\'' +
                 ", header_ACTIVE='" + header_ACTIVE + '\'' +
                 '}';
+    }
+
+    /**
+     * Check most important fields (!= null)
+     * @return true if checked fields have valid values, false otherwise
+     */
+    public boolean isValid(){
+        return StringUtils.isNoneEmpty(
+                this.getREGION1(),
+                this.getREGION3(),
+                this.getREGION4(),
+                this.getORT()
+        ) && this.getPOSTLEITZAHL() > 10000 && this.getPOSTLEITZAHL() < 100000;
     }
 }

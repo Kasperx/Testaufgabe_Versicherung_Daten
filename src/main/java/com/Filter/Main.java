@@ -2,7 +2,7 @@ package main.java.com.Filter;
 
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.database.Database;
-import main.java.com.Filter.service.Filter;
+import main.java.com.Filter.service.FileSrcDataFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
@@ -94,7 +94,7 @@ public class Main extends DAO {
                         if (expectedDrivingDistance < 0) {
                             logger.info("Error: Number must be greater than 0.");
                         } else {
-                            logger.info("Calculated factor: " + Filter.getFactor(expectedDrivingDistance));
+                            logger.info("Calculated factor: " + FileSrcDataFilter.getFactor(expectedDrivingDistance));
                         }
                         break;
                     case CITY_POSTAL_CODE:
@@ -103,7 +103,7 @@ public class Main extends DAO {
                         if (cityPostalCode < 0) {
                             logger.info("Error: Number must be greater than 0 and a valid postal code.");
                         } else {
-                            Filter.getCityName(database, cityPostalCode);
+                            FileSrcDataFilter.getCityName(database, cityPostalCode);
                         }
                         break;
                 }

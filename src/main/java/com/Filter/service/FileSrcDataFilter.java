@@ -2,7 +2,7 @@ package main.java.com.Filter.service;
 
 import main.java.com.Filter.database.Database;
 
-public class Filter {
+public class FileSrcDataFilter {
 
     public static float getFactor(int expectedDrivingDistance){
         return (float)

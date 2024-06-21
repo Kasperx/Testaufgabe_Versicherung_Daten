@@ -128,7 +128,9 @@ public class Tools {
                         stringToBoolean(line[count++])
                 );
                 fileSrcData.setACTIVE(line[count++]);
-                fileSrcDataList.add(fileSrcData);
+                if(fileSrcData.isValid()) {
+                    fileSrcDataList.add(fileSrcData);
+                }
             }
             logger.info("Got "+fileSrcDataList.size()+" objects from file.");
             return fileSrcDataList;
