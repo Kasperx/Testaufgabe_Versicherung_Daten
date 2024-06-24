@@ -90,13 +90,8 @@ public class DatabaseFile
     }
 
     @Override
-    public void insertData(List<FileSrcData> data) {
-
-    }
-
-    @Override
-    public void insertData(List<FileSrcData> data, boolean test) {
-
+    public boolean insertData(List<FileSrcData> data) {
+        return false;
     }
 
     @Override
@@ -111,6 +106,11 @@ public class DatabaseFile
 
     @Override
     public String getCityByPostalCode(int postalCode) {
+        return null;
+    }
+
+    @Override
+    public List<Integer> getAllCityPostalCodes() {
         return null;
     }
 

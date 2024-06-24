@@ -68,7 +68,7 @@ public abstract class Database
                 return DataSrc.SRC_FILE_NOT_FOUND;
             } else {
                 if(database.createDatabaseIfNotExists()){
-                    database.insertData(fileSrcData, true);
+                    database.insertData(fileSrcData);
                     return DataSrc.OK;
                 } else {
                     logger.error(DataSrc.DB_DOES_NOT_EXIST.toString());
@@ -83,21 +83,39 @@ public abstract class Database
         }
     }
 
+    @Override
     public abstract void connect();
 
+    @Override
     public abstract boolean createDatabaseIfNotExists();
 
+    @Override
     public abstract ArrayList<FileSrcData> getData();
 
+    @Override
     public abstract ArrayList<FileSrcData> getAllData();
 
-    public abstract void insertData(List<FileSrcData> data);
+    @Override
+    public abstract boolean insertData(List<FileSrcData> data);
 
-    public abstract void insertData(List<FileSrcData> data, boolean test);
-
+    @Override
     public abstract int getCountOfData();
+
+    @Override
+    public abstract void printInfo();
+
+    @Override
+    public abstract void printData();
+
+    @Override
+    public abstract void printAllData();
+
+    @Override
+    public abstract boolean isDBEmpty();
 
     public abstract int getCalcFactor(int cityPostalCode);
 
     public abstract String getCityByPostalCode(int postalCode);
+
+    public abstract List<Integer> getAllCityPostalCodes();
 }

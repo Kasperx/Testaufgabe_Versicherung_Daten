@@ -2,6 +2,8 @@ package main.java.com.Filter.service;
 
 import main.java.com.Filter.database.Database;
 
+import java.util.List;
+
 public class FileSrcDataFilter {
 
     public static float getFactor(int expectedDrivingDistance){
@@ -21,5 +23,9 @@ public class FileSrcDataFilter {
         return database != null
                 ? database.getCityByPostalCode(cityPostalCode)
                 : null;
+    }
+
+    public static List<Integer> getAllCityPostalCodes(Database database){
+        return database.getAllCityPostalCodes();
     }
 }

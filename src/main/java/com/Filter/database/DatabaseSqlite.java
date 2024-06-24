@@ -99,25 +99,14 @@ public class DatabaseSqlite
     }
 
     @Override
-    public void insertData(List<FileSrcData> data) {
+    public boolean insertData(List<FileSrcData> data) {
         logger.info("Storing object to db ...");
         for(FileSrcData fileSrcData: data) {
-            insertData(fileSrcData);
-        }
-    }
-
-    @Override
-    public void insertData(List<FileSrcData> data, boolean test) {
-        logger.info("Storing object to db ...");
-        // to see progress ... (remove after test)
-        if(test) {
-            for (int i = 0; i < data.size(); i++) {
-                if (i % 1000 == 0) {
-                    logger.info("Storing object #"+i+" to db -> " + data.get(i).toString());
-                }
-                insertData(data.get(i));
+            if(! insertData(fileSrcData)){
+                return false;
             }
         }
+        return true;
     }
 
     @Override
@@ -147,8 +136,22 @@ public class DatabaseSqlite
     }
 
     @Override
-    public boolean insertData(FileSrcData fileSrcData)
-    {
+    public List<Integer> getAllCityPostalCodes() {
+        ResultSet resultSet = executeGet("select distinct POSTLEITZAHL from " + TABLE_NAME + " where POSTLEITZAHL != \"\";");
+        List<Integer> results = new ArrayList<>();
+        try{
+            while(resultSet != null && resultSet.next()){
+                results.add(resultSet.getInt(1));
+            }
+            close(resultSet);
+        } catch(SQLException e) {
+            logger.error(e);
+        }
+        return results;
+    }
+
+    @Override
+    public boolean insertData(FileSrcData fileSrcData){
         try {
             String sql = ""
                     +" insert into " + DAO.TABLE_NAME + " ("

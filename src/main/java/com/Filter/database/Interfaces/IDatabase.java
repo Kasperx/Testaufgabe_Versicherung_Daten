@@ -1,6 +1,7 @@
 package main.java.com.Filter.database.Interfaces;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import main.java.com.Filter.Data.FileSrcData;
 
@@ -28,10 +29,15 @@ public interface IDatabase
 
     public boolean insertData(FileSrcData fileSrcData);
 
+    public boolean insertData(List<FileSrcData> fileSrcData);
+
     public void printInfo();
+
     public void printData();
 
     public void printData(int countData);
+
+    public int getCountOfData();
 
     public void printAllData();
 

@@ -14,6 +14,11 @@ public class Main extends DAO {
 
     public static void main(String[] args){
         logger = LogManager.getLogger(Main.class.getName());
+        for(String temp: args) {
+            if (temp.equalsIgnoreCase("-v")) {
+                new DAO().setShowOtherinfo(true);
+            }
+        }
         if(showOtherinfo) {
             logger.info("Program start ...");
         }
@@ -27,7 +32,7 @@ public class Main extends DAO {
             if(args[i].equalsIgnoreCase("-help")
                     || args[i].equalsIgnoreCase("-h")
                     || args[i].equalsIgnoreCase("-?")
-                    || args[i].equalsIgnoreCase("?")){
+                    || args[i].equalsIgnoreCase("?")) {
                 foundSomething = true;
                 showHelp(true);
                 System.exit(0);
@@ -73,11 +78,13 @@ public class Main extends DAO {
     }
 
     static void filterParameter(ParameterInput input, Database database, String[] args, int position){
-        logger.info("Found option for " + input.toString() + " = '" +
-                (input == ParameterInput.CITY_POSTAL_CODE
-                    ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
-                    : ParameterInput.EXPECTED_DISTANCE_OPTION.toString())
-                + "'.");
+        if(showOtherinfo) {
+            logger.info("Found option for " + input.toString() + " = '" +
+                    (input == ParameterInput.CITY_POSTAL_CODE
+                            ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
+                            : ParameterInput.EXPECTED_DISTANCE_OPTION.toString())
+                    + "'.");
+        }
         if(isLastPosition(args, position)) {
             logger.error("Error: Number for " + input.toString() + " missing.");
             showHelp();
@@ -89,35 +96,45 @@ public class Main extends DAO {
             String parameter = args[position + 1];
             // Normal check, but by calling from main method this cannot be null
             if (StringUtils.isNotBlank(parameter)) {
-                if (NumberUtils.isDigits(parameter)) {
                     switch (input) {
                         case EXPECTED_DISTANCE:
-                            expectedDrivingDistance = Integer.parseInt(parameter);
-                            logger.info("Input number for expected driving distance: " + expectedDrivingDistance);
-                            if (expectedDrivingDistance < 0) {
-                                logger.info("Error: Number must be greater than 0.");
+                            if (NumberUtils.isDigits(parameter)) {
+                                expectedDrivingDistance = Integer.parseInt(parameter);
+                                if(showOtherinfo) {
+                                    logger.info("Input number for " + ParameterInput.EXPECTED_DISTANCE.toString() + ": " + expectedDrivingDistance);
+                                }
+                                if (expectedDrivingDistance < 0) {
+                                    logger.info("Error: Number must be greater than 0.");
+                                } else {
+                                    logger.info("Calculated factor: " + FileSrcDataFilter.getFactor(expectedDrivingDistance));
+                                }
                             } else {
-                                logger.info("Calculated factor: " + FileSrcDataFilter.getFactor(expectedDrivingDistance));
+                                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
                             }
                             break;
                         case CITY_POSTAL_CODE:
-                            cityPostalCode = Integer.parseInt(parameter);
-                            logger.info("Input number for city postal code: " + cityPostalCode);
-                            if (cityPostalCode < 0) {
-                                logger.info("Error: Number must be greater than 0 and a valid postal code.");
-                            } else {
-                                String cityName = FileSrcDataFilter.getCityName(database, cityPostalCode);
-                                if(cityName == null) {
-                                    logger.info("No cityname found with that code");
-                                } else {
-                                    logger.info("Cityname with that code: '" + cityName + "'");
+                            if (NumberUtils.isDigits(parameter)) {
+                                cityPostalCode = Integer.parseInt(parameter);
+                                if(showOtherinfo) {
+                                    logger.info("Input number for " + ParameterInput.CITY_POSTAL_CODE.toString() + ": " + cityPostalCode);
                                 }
+                                if (cityPostalCode <= 0) {
+                                    logger.info("Error: Number must be greater than 0 and a valid " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
+                                    logger.info("Known " + ParameterInput.CITY_POSTAL_CODE.toString() + "s: " + FileSrcDataFilter.getAllCityPostalCodes(database));
+                                } else {
+                                    String cityName = FileSrcDataFilter.getCityName(database, cityPostalCode);
+                                    if(cityName == null) {
+                                        logger.info("No cityname found with that code");
+                                    } else {
+                                        logger.info("Cityname with that code: '" + cityName + "'");
+                                    }
+                                }
+                            } else {
+                                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
+                                logger.info("Known " + ParameterInput.CITY_POSTAL_CODE.toString() + "s: " + FileSrcDataFilter.getAllCityPostalCodes(database));
                             }
                             break;
                     }
-                } else {
-                    logger.info("Error: Parameter is '" + parameter + "': must be a number.");
-                }
             }
         }
     }
