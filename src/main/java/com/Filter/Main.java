@@ -44,6 +44,8 @@ public class Main extends DAO {
                 System.exit(0);
             } if(args[i].equalsIgnoreCase(ParameterInput.EXPECTED_DISTANCE_OPTION.toString())){
                 foundSomething = true;
+                filterParameter(ParameterInput.EXPECTED_DISTANCE, database, args, i);
+                /*
                 logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + " = " + ParameterInput.EXPECTED_DISTANCE_OPTION + ".");
                 if(isLastPosition(args, i)) {
                     logger.error("Error: Number for " + ParameterInput.EXPECTED_DISTANCE.toString() + " missing.");
@@ -52,8 +54,11 @@ public class Main extends DAO {
                 } else {
                     filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1], database);
                 }
+                 */
             } if(args[i].equalsIgnoreCase(ParameterInput.CITY_POSTAL_CODE_OPTION.toString())){
                 foundSomething = true;
+                filterParameter(ParameterInput.CITY_POSTAL_CODE, database, args, i);
+                /*
                 logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + " = " +  ParameterInput.CITY_POSTAL_CODE_OPTION + ".");
                 if(isLastPosition(args, i)) {
                     logger.error("Error: Number for " + ParameterInput.CITY_POSTAL_CODE.toString() + " missing.");
@@ -62,6 +67,7 @@ public class Main extends DAO {
                 } else {
                     filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1], database);
                 }
+                 */
             }
         }
         // Show info (invalid parameter) if input is not known
@@ -78,35 +84,45 @@ public class Main extends DAO {
         logger.info("Bye");
     }
 
-    static void filterParameter(ParameterInput input, String parameter, Database database){
-
-        int expectedDrivingDistance;
-        int cityPostalCode;
-        // Normal check, but by calling from main method this cannot be null
-        if (StringUtils.isNotBlank(parameter)) {
-            if (NumberUtils.isDigits(parameter)) {
-                switch (input) {
-                    case EXPECTED_DISTANCE:
-                        expectedDrivingDistance = Integer.parseInt(parameter);
-                        logger.info("Input number for expected driving distance: " + expectedDrivingDistance);
-                        if (expectedDrivingDistance < 0) {
-                            logger.info("Error: Number must be greater than 0.");
-                        } else {
-                            logger.info("Calculated factor: " + FileSrcDataFilter.getFactor(expectedDrivingDistance));
-                        }
-                        break;
-                    case CITY_POSTAL_CODE:
-                        cityPostalCode = Integer.parseInt(parameter);
-                        logger.info("Input number for city postal code: " + cityPostalCode);
-                        if (cityPostalCode < 0) {
-                            logger.info("Error: Number must be greater than 0 and a valid postal code.");
-                        } else {
-                            FileSrcDataFilter.getCityName(database, cityPostalCode);
-                        }
-                        break;
+    static void filterParameter(ParameterInput input, Database database, String[] args, int position){
+        logger.info("Found option for " + input.toString() + " = " + (input == ParameterInput.CITY_POSTAL_CODE
+                ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
+                : ParameterInput.EXPECTED_DISTANCE_OPTION.toString()) + ".");
+        if(isLastPosition(args, position)) {
+            logger.error("Error: Number for " + input.toString() + " missing.");
+            showHelp();
+            System.exit(1);
+        } else {
+            //filterParameter(ParameterInput.EXPECTED_DISTANCE, args[position + 1], database);
+            int expectedDrivingDistance;
+            int cityPostalCode;
+            String parameter = args[position + 1];
+            // Normal check, but by calling from main method this cannot be null
+            if (StringUtils.isNotBlank(parameter)) {
+                if (NumberUtils.isDigits(parameter)) {
+                    switch (input) {
+                        case EXPECTED_DISTANCE:
+                            expectedDrivingDistance = Integer.parseInt(parameter);
+                            logger.info("Input number for expected driving distance: " + expectedDrivingDistance);
+                            if (expectedDrivingDistance < 0) {
+                                logger.info("Error: Number must be greater than 0.");
+                            } else {
+                                logger.info("Calculated factor: " + FileSrcDataFilter.getFactor(expectedDrivingDistance));
+                            }
+                            break;
+                        case CITY_POSTAL_CODE:
+                            cityPostalCode = Integer.parseInt(parameter);
+                            logger.info("Input number for city postal code: " + cityPostalCode);
+                            if (cityPostalCode < 0) {
+                                logger.info("Error: Number must be greater than 0 and a valid postal code.");
+                            } else {
+                                FileSrcDataFilter.getCityName(database, cityPostalCode);
+                            }
+                            break;
+                    }
+                } else {
+                    logger.info("Error: Parameter is '" + parameter + "': must be a number.");
                 }
-            } else {
-                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
             }
         }
     }
