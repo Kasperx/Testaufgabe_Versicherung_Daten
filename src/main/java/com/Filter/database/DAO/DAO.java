@@ -15,8 +15,10 @@ public class DAO{
     protected boolean permitCreateDB = true;
 
     public static enum ParameterInput {
-        EXPECTED_DISTANCE("expected driving distance = -distance"),
-        CITY_POSTAL_CODE("city postal code = -plz");
+        EXPECTED_DISTANCE("expected driving distance"),
+        EXPECTED_DISTANCE_OPTION("-distance"),
+        CITY_POSTAL_CODE("city postal code"),
+        CITY_POSTAL_CODE_OPTION("-plz");
 
         private final String value;
 

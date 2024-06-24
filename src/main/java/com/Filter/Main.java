@@ -42,26 +42,24 @@ public class Main extends DAO {
                 foundSomething = true;
                 database.printAllData();
                 System.exit(0);
-            } if(args[i].equalsIgnoreCase("-distance")){
+            } if(args[i].equalsIgnoreCase(ParameterInput.EXPECTED_DISTANCE_OPTION.toString())){
                 foundSomething = true;
+                logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + " = " + ParameterInput.EXPECTED_DISTANCE_OPTION + ".");
                 if(isLastPosition(args, i)) {
-                    logger.info("Found option for expected " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
-                    logger.error("Error: Number for expected " + ParameterInput.EXPECTED_DISTANCE.toString() + " missing.");
+                    logger.error("Error: Number for " + ParameterInput.EXPECTED_DISTANCE.toString() + " missing.");
                     showHelp();
                     System.exit(1);
                 } else {
-                    logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
                     filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1], database);
                 }
-            } if(args[i].equalsIgnoreCase("-plz")){
+            } if(args[i].equalsIgnoreCase(ParameterInput.CITY_POSTAL_CODE_OPTION.toString())){
                 foundSomething = true;
+                logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + " = " +  ParameterInput.CITY_POSTAL_CODE_OPTION + ".");
                 if(isLastPosition(args, i)) {
-                    logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
                     logger.error("Error: Number for " + ParameterInput.CITY_POSTAL_CODE.toString() + " missing.");
                     showHelp();
                     System.exit(1);
                 } else {
-                    logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
                     filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1], database);
                 }
             }
