@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import main.java.com.Filter.Data.FileSrcData;
 
-public interface DatabaseInterface
+public interface IDatabase
 {
     /**
      * connect to database

@@ -4,15 +4,17 @@ import java.io.File;
 
 public class DAO{
 
-    protected static String fileNameSrc = System.getProperty("user.dir") + File.separator + "postcodes.csv";
+    protected final static String FILE_NAME_SRC = System.getProperty("user.dir") + File.separator + "postcodes.csv";
 
-    protected final static String tableName = "Bewegungsdaten";
+    protected final static String TABLE_NAME = "Bewegungsdaten";
 
-    protected static int COUNT_DIGITS_AFTER_COMMA = 10;
+    protected final static int COUNT_DIGITS_AFTER_COMMA = 10;
 
-    protected static int LIMIT_PRINT_DATA = 10;
+    protected final static int LIMIT_PRINT_DATA = 10;
 
     protected boolean permitCreateDB = true;
+
+    protected String path = null;
 
     public static enum ParameterInput {
         EXPECTED_DISTANCE("expected driving distance"),

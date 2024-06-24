@@ -14,7 +14,9 @@ import main.java.com.Filter.Data.FileSrcData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class DatabaseFile extends Database implements Serializable{
+public class DatabaseFile
+        extends Database
+        implements Serializable{
 
     int id;
 
@@ -28,31 +30,24 @@ public class DatabaseFile extends Database implements Serializable{
 
     static Logger logger = LogManager.getLogger(DatabaseFile.class.getName());
 
-    public DatabaseFile()
-    {
+    public DatabaseFile(){
         path = System.getProperty("user.dir")+"/test";
         File dbFile = new File(path);
-        try
-        {
-            if(!dbFile.exists())
-            {
+        try{
+            if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
             connect();
-        }
-        catch(IOException e)
-        {
+        } catch(IOException e) {
             logger.error(e);
         }
     }
 
-    public DatabaseFile(int id, String name, String lastname, String pw, boolean admin)
-    {
+    public DatabaseFile(int id, String name, String lastname, String pw, boolean admin){
         path = System.getProperty("user.dir")+"/test";
         File dbFile = new File(path);
         try{
-            if(!dbFile.exists())
-            {
+            if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
         } catch(Exception e) {

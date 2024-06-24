@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import main.java.com.Filter.Data.FileSrcData;
@@ -14,16 +13,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tech.tablesaw.api.Table;
 
-public class DatabaseSQLite extends Database{
+public class DatabaseSqlite extends Database{
     String path = System.getProperty("user.dir")+"/database.db";
 
     Connection connection = null;
 
     boolean test = true;
 
-    static Logger logger = LogManager.getLogger(DatabaseSQLite.class.getName());
+    static Logger logger = LogManager.getLogger(DatabaseSqlite.class.getName());
 
-    public DatabaseSQLite(){
+    public DatabaseSqlite(){
         File dbFile = new File(path);
         try{
             if(!dbFile.exists()){
@@ -49,7 +48,7 @@ public class DatabaseSQLite extends Database{
 
     @Override
     public ArrayList<FileSrcData> getData(){
-        return getDataFromDB("SELECT * FROM " + Database.tableName + " limit " + LIMIT_PRINT_DATA + ";");
+        return getDataFromDB("SELECT * FROM " + Database.TABLE_NAME + " limit " + LIMIT_PRINT_DATA + ";");
     }
 
     /**
@@ -57,7 +56,7 @@ public class DatabaseSQLite extends Database{
      */
     @Override
     public ArrayList<FileSrcData> getAllData(){
-        return getDataFromDB("SELECT * FROM " + Database.tableName + ";");
+        return getDataFromDB("SELECT * FROM " + Database.TABLE_NAME + ";");
     }
 
     /**
@@ -69,7 +68,7 @@ public class DatabaseSQLite extends Database{
             //executeSet("remove from table test");
             //executeSet("drop database if exists test");
             //////////////////////////////
-            executeSet("create table if not exists " + DAO.tableName + " ("
+            executeSet("create table if not exists " + DAO.TABLE_NAME + " ("
                     + "id integer primary key autoincrement,"
                     + "ISO_3166_1_ALPHA_2 text,"
                     + "ISO_3166_1_ALPHA_2_REGION_CODE text,"
@@ -125,7 +124,7 @@ public class DatabaseSQLite extends Database{
     public int getCountOfData() {
         connect();
         if(dbTableExists()){
-            try(ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");){
+            try(ResultSet resultSet = executeGet("select count(*) from " + TABLE_NAME + ";");){
                 if(resultSet != null && resultSet.next()){
                     return resultSet.getInt(1);
                 }
@@ -152,7 +151,7 @@ public class DatabaseSQLite extends Database{
     {
         try {
             String sql = ""
-                    +" insert into " + DAO.tableName + " ("
+                    +" insert into " + DAO.TABLE_NAME + " ("
                     + "ISO_3166_1_ALPHA_2,"
                     + "ISO_3166_1_ALPHA_2_REGION_CODE,"
                     + "REGION1,"
@@ -199,7 +198,7 @@ public class DatabaseSQLite extends Database{
             stmt.execute();
             close(null);
         } catch (Exception e) {
-            logger.error("insert into " + DAO.tableName, e);
+            logger.error("insert into " + DAO.TABLE_NAME, e);
         }
         return false;
     }
@@ -210,7 +209,7 @@ public class DatabaseSQLite extends Database{
         logger.info("");
         try {
             Table table = Table.read()
-                    .db(executeGet("SELECT * FROM " + Database.tableName + "  limit " + countData + ";"));
+                    .db(executeGet("SELECT * FROM " + Database.TABLE_NAME + "  limit " + countData + ";"));
             logger.info(table.print());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -228,7 +227,7 @@ public class DatabaseSQLite extends Database{
         logger.info("");
         try {
             Table table = Table.read()
-                    .db(executeGet("SELECT * FROM " + Database.tableName + ";"));
+                    .db(executeGet("SELECT * FROM " + Database.TABLE_NAME + ";"));
             logger.info(table.print());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -265,7 +264,7 @@ public class DatabaseSQLite extends Database{
     boolean dbTableExists(){
         try {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
-            ResultSet resultSet = databaseMetaData.getTables(null, null, tableName, new String[] {"TABLE"});
+            ResultSet resultSet = databaseMetaData.getTables(null, null, TABLE_NAME, new String[] {"TABLE"});
             return resultSet.next();
         } catch (SQLException e) {
             logger.error(e);
@@ -370,7 +369,7 @@ public class DatabaseSQLite extends Database{
 
     String getCityFromDB(int postalCode){
         logger.info(getCityWherePostalCodeNotNull());
-        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL = " + postalCode + ";");
+        ResultSet resultSet = executeGet("select REGION2 from " + TABLE_NAME + " where POSTLEITZAHL = " + postalCode + ";");
         String result = null;
         try{
             if(resultSet != null && resultSet.next()){
@@ -384,7 +383,7 @@ public class DatabaseSQLite extends Database{
     }
 
     List<String> getCityWherePostalCodeNotNull(){
-        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL != null;");
+        ResultSet resultSet = executeGet("select REGION2 from " + TABLE_NAME + " where POSTLEITZAHL != null;");
         List<String> result = new ArrayList<>();
         try{
             while(resultSet != null && resultSet.next()){

@@ -2,7 +2,7 @@ package test.java.com.Filter;
 
 import main.java.com.Filter.Main;
 import main.java.com.Filter.database.Database;
-import main.java.com.Filter.database.DatabaseSQLite;
+import main.java.com.Filter.database.DatabaseSqlite;
 import main.java.com.Filter.service.FileSrcDataFilter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -64,7 +64,7 @@ public class TestMain {
     @Test
     @DisplayName("Test Database: start -> use type sqlite")
     public void testClassDatabaseReturnDB(){
-        assertInstanceOf(DatabaseSQLite.class, database);
+        assertInstanceOf(DatabaseSqlite.class, database);
     }
 
     @Test

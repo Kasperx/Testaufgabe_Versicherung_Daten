@@ -1,6 +1,5 @@
 package main.java.com.Filter.database;
 
-import java.sql.Connection;
 import java.util.*;
 
 import lombok.Getter;
@@ -8,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
-import main.java.com.Filter.database.Interfaces.DatabaseInterface;
+import main.java.com.Filter.database.Interfaces.IDatabase;
 import main.java.com.Filter.service.Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 @Setter
 public abstract class Database
         extends DAO
-        implements DatabaseInterface
+        implements IDatabase
 {
     static Logger logger = LogManager.getLogger(Database.class.getName());
 
@@ -38,12 +37,6 @@ public abstract class Database
         }
     };
 
-    protected Connection connection;
-
-    protected String serverIp;
-
-    protected String path;
-
     /**
      * get instance
      * @return
@@ -61,17 +54,17 @@ public abstract class Database
     public static Database getInstance(DatabaseType source){
         return switch (source) {
             case file -> new DatabaseFile();
-            case sqlite -> new DatabaseSQLite();
+            case sqlite -> new DatabaseSqlite();
             default -> {
                 logger.info("Not supported yet: source '" + source.value + "'. Using '" + DatabaseType.sqlite + "'.");
-                yield new DatabaseSQLite();
+                yield new DatabaseSqlite();
             }
         };
     }
 
     public DataSrc initDataSrc(Database database){
         if(database.isDBEmpty()) {
-            List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
+            List<FileSrcData> fileSrcData = Tools.getDataFromFile(FILE_NAME_SRC);
             if(fileSrcData == null || fileSrcData.isEmpty()){
                 logger.error(DataSrc.SRC_FILE_NOT_FOUND.toString());
                 return DataSrc.SRC_FILE_NOT_FOUND;
