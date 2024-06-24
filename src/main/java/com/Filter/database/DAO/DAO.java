@@ -16,6 +16,8 @@ public class DAO{
 
     protected String path = null;
 
+    protected final static boolean showOtherinfo = false;
+
     public static enum ParameterInput {
         EXPECTED_DISTANCE("expected driving distance"),
         EXPECTED_DISTANCE_OPTION("-distance"),

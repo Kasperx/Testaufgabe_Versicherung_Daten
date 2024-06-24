@@ -3,7 +3,6 @@ package main.java.com.Filter.database;
 import java.util.*;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
@@ -12,13 +11,12 @@ import main.java.com.Filter.service.Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@NoArgsConstructor
 @Getter
 @Setter
 public abstract class Database
         extends DAO
-        implements IDatabase
-{
+        implements IDatabase{
+
     static Logger logger = LogManager.getLogger(Database.class.getName());
 
     static DatabaseType databaseType;
@@ -56,7 +54,7 @@ public abstract class Database
             case file -> new DatabaseFile();
             case sqlite -> new DatabaseSqlite();
             default -> {
-                logger.info("Not supported yet: source '" + source.value + "'. Using '" + DatabaseType.sqlite + "'.");
+                logger.info("Not supported: source '" + source.value + "'. Using '" + DatabaseType.sqlite + "'.");
                 yield new DatabaseSqlite();
             }
         };
@@ -78,7 +76,9 @@ public abstract class Database
                 }
             }
         } else {
-            logger.info("Database knows " + database.getCountOfData() + " data");
+            if(showOtherinfo) {
+                logger.info("Database knows " + database.getCountOfData() + " data");
+            }
             return DataSrc.OK;
         }
     }

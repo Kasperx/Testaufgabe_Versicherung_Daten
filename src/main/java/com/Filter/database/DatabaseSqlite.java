@@ -9,22 +9,22 @@ import java.util.List;
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.service.Tools;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tech.tablesaw.api.Table;
 
-public class DatabaseSqlite extends Database{
-    String path = System.getProperty("user.dir")+"/database.db";
+public class DatabaseSqlite
+        extends Database{
 
     Connection connection = null;
 
-    boolean test = true;
-
-    static Logger logger = LogManager.getLogger(DatabaseSqlite.class.getName());
+    final static Logger logger = LogManager.getLogger(DatabaseSqlite.class.getName());
 
     public DatabaseSqlite(){
-        File dbFile = new File(path);
+        path = System.getProperty("user.dir")+"/database.sqlite";
         try{
+            File dbFile = new File(path);
             if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
@@ -353,7 +353,7 @@ public class DatabaseSqlite extends Database{
                         resultSet.getInt("CALC_LOCALE")
                 );
                 fileSrcData.setSOMMERZEIT(
-                        Tools.intToBoolean(resultSet.getInt("SOMMERZEIT"))
+                        Tools.toBoolean(resultSet.getInt("SOMMERZEIT"))
                 );
                 fileSrcData.setACTIVE(
                         resultSet.getString("ACTIVE")
@@ -368,12 +368,13 @@ public class DatabaseSqlite extends Database{
     }
 
     String getCityFromDB(int postalCode){
-        logger.info(getCityWherePostalCodeNotNull());
-        ResultSet resultSet = executeGet("select REGION2 from " + TABLE_NAME + " where POSTLEITZAHL = " + postalCode + ";");
+        ResultSet resultSet = executeGet("select REGION4 from " + TABLE_NAME + " where POSTLEITZAHL = " + postalCode + ";");
         String result = null;
         try{
             if(resultSet != null && resultSet.next()){
-                result = resultSet.getString(1);
+                result = StringUtils.isNotBlank(resultSet.getString(1))
+                    ? resultSet.getString(1)
+                    : null;
             }
             close(resultSet);
         } catch(SQLException e) {

@@ -15,8 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class DatabaseFile
-        extends Database
-        implements Serializable{
+        extends Database{
 
     int id;
 
@@ -28,7 +27,7 @@ public class DatabaseFile
 
     boolean admin;
 
-    static Logger logger = LogManager.getLogger(DatabaseFile.class.getName());
+    final static Logger logger = LogManager.getLogger(DatabaseFile.class.getName());
 
     public DatabaseFile(){
         path = System.getProperty("user.dir")+"/test";
@@ -67,8 +66,6 @@ public class DatabaseFile
             Object obj;
             FileSrcData fileSrcData = new FileSrcData();
             while((obj = inFile.readObject()) != null){
-                db = new DatabaseFile();
-                db = (DatabaseFile)obj;
                 data.add(fileSrcData);
             }
             return data;

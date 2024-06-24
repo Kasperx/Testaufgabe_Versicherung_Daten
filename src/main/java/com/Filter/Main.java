@@ -14,7 +14,9 @@ public class Main extends DAO {
 
     public static void main(String[] args){
         logger = LogManager.getLogger(Main.class.getName());
-        logger.info("Program start ...");
+        if(showOtherinfo) {
+            logger.info("Program start ...");
+        }
         Database database = Database.getInstance();
         if(database.initDataSrc(database) != DataSrc.OK){
             showHelp(false);
@@ -45,32 +47,19 @@ public class Main extends DAO {
             } if(args[i].equalsIgnoreCase(ParameterInput.EXPECTED_DISTANCE_OPTION.toString())){
                 foundSomething = true;
                 filterParameter(ParameterInput.EXPECTED_DISTANCE, database, args, i);
-                /*
-                logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + " = " + ParameterInput.EXPECTED_DISTANCE_OPTION + ".");
-                if(isLastPosition(args, i)) {
-                    logger.error("Error: Number for " + ParameterInput.EXPECTED_DISTANCE.toString() + " missing.");
-                    showHelp();
-                    System.exit(1);
-                } else {
-                    filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1], database);
-                }
-                 */
             } if(args[i].equalsIgnoreCase(ParameterInput.CITY_POSTAL_CODE_OPTION.toString())){
                 foundSomething = true;
                 filterParameter(ParameterInput.CITY_POSTAL_CODE, database, args, i);
-                /*
-                logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + " = " +  ParameterInput.CITY_POSTAL_CODE_OPTION + ".");
-                if(isLastPosition(args, i)) {
-                    logger.error("Error: Number for " + ParameterInput.CITY_POSTAL_CODE.toString() + " missing.");
-                    showHelp();
-                    System.exit(1);
-                } else {
-                    filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1], database);
-                }
-                 */
             }
         }
         // Show info (invalid parameter) if input is not known
+        showInfoForParameter(args, foundSomething);
+        if(showOtherinfo) {
+            logger.info("Bye");
+        }
+    }
+
+    static void showInfoForParameter(String[] args, boolean foundSomething){
         if(! foundSomething && args.length > 0) {
             if(args.length == 1) {
                 logger.info("Parameter invalid: '" + args[0] + "'");
@@ -81,13 +70,14 @@ public class Main extends DAO {
                 }
             }
         }
-        logger.info("Bye");
     }
 
     static void filterParameter(ParameterInput input, Database database, String[] args, int position){
-        logger.info("Found option for " + input.toString() + " = " + (input == ParameterInput.CITY_POSTAL_CODE
-                ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
-                : ParameterInput.EXPECTED_DISTANCE_OPTION.toString()) + ".");
+        logger.info("Found option for " + input.toString() + " = '" +
+                (input == ParameterInput.CITY_POSTAL_CODE
+                    ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
+                    : ParameterInput.EXPECTED_DISTANCE_OPTION.toString())
+                + "'.");
         if(isLastPosition(args, position)) {
             logger.error("Error: Number for " + input.toString() + " missing.");
             showHelp();
@@ -116,7 +106,12 @@ public class Main extends DAO {
                             if (cityPostalCode < 0) {
                                 logger.info("Error: Number must be greater than 0 and a valid postal code.");
                             } else {
-                                FileSrcDataFilter.getCityName(database, cityPostalCode);
+                                String cityName = FileSrcDataFilter.getCityName(database, cityPostalCode);
+                                if(cityName == null) {
+                                    logger.info("No cityname found with that code");
+                                } else {
+                                    logger.info("Cityname with that code: '" + cityName + "'");
+                                }
                             }
                             break;
                     }
