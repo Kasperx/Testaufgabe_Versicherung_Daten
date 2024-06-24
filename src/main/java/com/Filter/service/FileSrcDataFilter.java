@@ -1,10 +1,14 @@
 package main.java.com.Filter.service;
 
+import lombok.AllArgsConstructor;
 import main.java.com.Filter.database.Database;
 
 import java.util.List;
 
+@AllArgsConstructor
 public class FileSrcDataFilter {
+
+    Database database;
 
     public static float getFactor(int expectedDrivingDistance){
         return (float)
@@ -19,13 +23,17 @@ public class FileSrcDataFilter {
                 : 2.0f;
     }
 
-    public static String getCityName(Database database, int cityPostalCode){
+    public String getCityName(int cityPostalCode){
         return database != null
                 ? database.getCityByPostalCode(cityPostalCode)
                 : null;
     }
 
-    public static List<Integer> getAllCityPostalCodes(Database database){
+    public List<Integer> getAllCityPostalCodes(){
         return database.getAllCityPostalCodes();
+    }
+
+    public float calculateOption(int expectedDrivingDistance, int cityPostalCode){
+        return 3f;
     }
 }

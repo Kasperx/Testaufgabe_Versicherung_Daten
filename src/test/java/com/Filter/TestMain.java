@@ -16,12 +16,15 @@ public class TestMain {
 
     static Main main;
 
+    static FileSrcDataFilter fileSrcDataFilter;
+
     @BeforeAll
     @DisplayName("Test Main: instance != null")
     public static void start()
             throws Exception {
         main = new Main();
         database = Database.getInstance();
+        fileSrcDataFilter = new FileSrcDataFilter(database);
     }
 
     @Test
@@ -46,19 +49,19 @@ public class TestMain {
     @Test
     @DisplayName("Test FileSrcDataFilter: Parameter (null, 0) -> return null")
     public void testClassFilterReturnCityNameNull(){
-        assertNull(FileSrcDataFilter.getCityName(null, 0));
+        assertNull(fileSrcDataFilter.getCityName(0));
     }
 
     @Test
     @DisplayName("Test FileSrcDataFilter: Parameter (null, 99510) -> return null")
     public void testClassFilterReturnCityNameNull2(){
-        assertNull(FileSrcDataFilter.getCityName(null, 99510));
+        assertNull(fileSrcDataFilter.getCityName(99510));
     }
 
     @Test
     @DisplayName("Test FileSrcDataFilter: Parameter (?, 99510) -> return null")
     public void testClassFilterReturnCityNameNotNull(){
-        assertNotNull(FileSrcDataFilter.getCityName(Database.getInstance(), 99510));
+        assertNotNull(fileSrcDataFilter.getCityName(99510));
     }
 
     @Test
