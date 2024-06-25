@@ -20,7 +20,7 @@ import java.util.Random;
 @NoArgsConstructor
 public class Tools {
 
-    static Logger logger = LogManager.getLogger(Tools.class.getName());
+    final static Logger logger = LogManager.getLogger(Tools.class.getName());
 
     /*
     public static void writeToCsv() {
@@ -125,22 +125,25 @@ public class Tools {
                 //fileSrcData.setZEITZONE();
                 //fileSrcData.setCALC_LOCALE();
                 fileSrcData.setSOMMERZEIT(
-                        stringToBoolean(line[count++])
+                        toBoolean(line[count++])
                 );
                 fileSrcData.setACTIVE(line[count++]);
-                fileSrcDataList.add(fileSrcData);
+                if(fileSrcData.isValid()) {
+                    fileSrcDataList.add(fileSrcData);
+                }
             }
             logger.info("Got "+fileSrcDataList.size()+" objects from file.");
             return fileSrcDataList;
         }
     }
 
-    public static boolean stringToBoolean (String bool){
+    public static boolean toBoolean(String bool){
         return StringUtils.isNotBlank(bool)
                 ? bool.equalsIgnoreCase("true")
                 : null;
     }
-    public static boolean intToBoolean (int bool){
+
+    public static boolean toBoolean(int bool){
         return bool == 1;
     }
 
@@ -164,9 +167,9 @@ public class Tools {
 
     public static String writeFirstCharacterUpperCase(String text){
         if(text.isEmpty()) {
-            return text;
+            return null;
         } else {
-            char [] newText = new char[text.length()];
+            char[] newText = new char[text.length()];
             for(int i=0; i<text.length(); i++) {
                 if(i == 0) {
                     newText[i] = text.charAt(i);
@@ -210,8 +213,7 @@ public class Tools {
                                 StandardCharsets.UTF_8)
                 );
             } else {
-                new File(fpath).createNewFile();
-                return new ArrayList<String>();
+                return null;
             }
         } catch (Exception e) {
             logger.error(e);

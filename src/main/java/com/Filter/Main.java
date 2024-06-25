@@ -2,20 +2,38 @@ package main.java.com.Filter;
 
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.database.Database;
-import main.java.com.Filter.service.Filter;
+import main.java.com.Filter.service.FileSrcDataFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.HashMap;
+
 public class Main extends DAO {
 
     static Logger logger = LogManager.getLogger(Main.class.getName());
 
+    static HashMap<ParameterInput, Boolean> foundInputParameter = new HashMap<>(){{
+            put(ParameterInput.EXPECTED_DISTANCE, false);
+            put(ParameterInput.CITY_POSTAL_CODE, false);
+            put(ParameterInput.VEHICLE_FORM, false);
+    }};
+
+    static FileSrcDataFilter fileSrcDataFilter;
+
     public static void main(String[] args){
         logger = LogManager.getLogger(Main.class.getName());
-        logger.info("Program start ...");
+        for(String temp: args) {
+            if (temp.equalsIgnoreCase("-v")) {
+                new DAO().setShowOtherinfo(true);
+            }
+        }
+        if(showOtherinfo) {
+            logger.info("Program start ...");
+        }
         Database database = Database.getInstance();
+        fileSrcDataFilter = new FileSrcDataFilter(database);
         if(database.initDataSrc(database) != DataSrc.OK){
             showHelp(false);
             System.exit(1);
@@ -25,7 +43,7 @@ public class Main extends DAO {
             if(args[i].equalsIgnoreCase("-help")
                     || args[i].equalsIgnoreCase("-h")
                     || args[i].equalsIgnoreCase("-?")
-                    || args[i].equalsIgnoreCase("?")){
+                    || args[i].equalsIgnoreCase("?")) {
                 foundSomething = true;
                 showHelp(true);
                 System.exit(0);
@@ -42,31 +60,25 @@ public class Main extends DAO {
                 foundSomething = true;
                 database.printAllData();
                 System.exit(0);
-            } if(args[i].equalsIgnoreCase("-distance")){
+            } if(args[i].equalsIgnoreCase(ParameterInput.EXPECTED_DISTANCE_OPTION.toString())){
                 foundSomething = true;
-                if(isLastPosition(args, i)) {
-                    logger.info("Found option for expected " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
-                    logger.error("Error: Number for expected " + ParameterInput.EXPECTED_DISTANCE.toString() + " missing.");
-                    showHelp();
-                    System.exit(1);
-                } else {
-                    logger.info("Found option for " + ParameterInput.EXPECTED_DISTANCE.toString() + ".");
-                    filterParameter(ParameterInput.EXPECTED_DISTANCE, args[i + 1], database);
-                }
-            } if(args[i].equalsIgnoreCase("-plz")){
+                filterParameter(ParameterInput.EXPECTED_DISTANCE, args, i);
+            } if(args[i].equalsIgnoreCase(ParameterInput.CITY_POSTAL_CODE_OPTION.toString())){
                 foundSomething = true;
-                if(isLastPosition(args, i)) {
-                    logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
-                    logger.error("Error: Number for " + ParameterInput.CITY_POSTAL_CODE.toString() + " missing.");
-                    showHelp();
-                    System.exit(1);
-                } else {
-                    logger.info("Found option for " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
-                    filterParameter(ParameterInput.CITY_POSTAL_CODE, args[i + 1], database);
-                }
+                filterParameter(ParameterInput.CITY_POSTAL_CODE, args, i);
+            } if(args[i].equalsIgnoreCase(ParameterInput.VEHICLE_FORM_OPTION.toString())){
+                foundSomething = true;
+                filterParameter(ParameterInput.VEHICLE_FORM, args, i);
             }
         }
         // Show info (invalid parameter) if input is not known
+        showInfoForParameter(args, foundSomething);
+        if(showOtherinfo) {
+            logger.info("Bye");
+        }
+    }
+
+    static void showInfoForParameter(String[] args, boolean foundSomething){
         if(! foundSomething && args.length > 0) {
             if(args.length == 1) {
                 logger.info("Parameter invalid: '" + args[0] + "'");
@@ -77,39 +89,99 @@ public class Main extends DAO {
                 }
             }
         }
-        logger.info("Bye");
     }
 
-    static void filterParameter(ParameterInput input, String parameter, Database database){
-
-        int expectedDrivingDistance;
-        int cityPostalCode;
-        // Normal check, but by calling from main method this cannot be null
-        if (StringUtils.isNotBlank(parameter)) {
-            if (NumberUtils.isDigits(parameter)) {
-                switch (input) {
-                    case EXPECTED_DISTANCE:
-                        expectedDrivingDistance = Integer.parseInt(parameter);
-                        logger.info("Input number for expected driving distance: " + expectedDrivingDistance);
-                        if (expectedDrivingDistance < 0) {
-                            logger.info("Error: Number must be greater than 0.");
-                        } else {
-                            logger.info("Calculated factor: " + Filter.getFactor(expectedDrivingDistance));
-                        }
-                        break;
-                    case CITY_POSTAL_CODE:
-                        cityPostalCode = Integer.parseInt(parameter);
-                        logger.info("Input number for city postal code: " + cityPostalCode);
-                        if (cityPostalCode < 0) {
-                            logger.info("Error: Number must be greater than 0 and a valid postal code.");
-                        } else {
-                            Filter.getCityName(database, cityPostalCode);
-                        }
-                        break;
-                }
-            } else {
-                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
+    static void filterParameter(ParameterInput input, String[] args, int position){
+        if(showOtherinfo) {
+            logger.info("Found option for " + input.toString() + " = '" +
+                    (input == ParameterInput.CITY_POSTAL_CODE
+                            ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
+                            : input == ParameterInput.EXPECTED_DISTANCE
+                                    ? ParameterInput.EXPECTED_DISTANCE_OPTION.toString()
+                                    : ParameterInput.VEHICLE_FORM_OPTION.toString())
+                    + "'.");
+        }
+        int expectedDrivingDistance = -1;
+        int cityPostalCode = -1;
+        int vehicleForm = -1;
+        if(isLastPosition(args, position)) {
+            logger.error("Error: Number for " + input.toString() + " missing.");
+            showHelp();
+            System.exit(1);
+        } else {
+            String parameter = args[position + 1];
+            // Normal check, but by calling from main method this cannot be null
+            if (StringUtils.isNotBlank(parameter)) {
+                    switch (input) {
+                        case EXPECTED_DISTANCE:
+                            if (NumberUtils.isDigits(parameter)) {
+                                expectedDrivingDistance = Integer.parseInt(parameter);
+                                if(showOtherinfo) {
+                                    logger.info("Input number for " + ParameterInput.EXPECTED_DISTANCE.toString() + ": " + expectedDrivingDistance);
+                                }
+                                if (expectedDrivingDistance < 0) {
+                                    logger.info("Error: Number must be greater than 0.");
+                                } else {
+                                    logger.info("Calculated factor for " + ParameterInput.EXPECTED_DISTANCE + ": " + fileSrcDataFilter.getFactorDrivingDistance(expectedDrivingDistance));
+                                    foundInputParameter.put(ParameterInput.EXPECTED_DISTANCE, true);
+                                }
+                            } else {
+                                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
+                            }
+                            break;
+                        case CITY_POSTAL_CODE:
+                            if (NumberUtils.isDigits(parameter)) {
+                                cityPostalCode = Integer.parseInt(parameter);
+                                if(showOtherinfo) {
+                                    logger.info("Input number for " + ParameterInput.CITY_POSTAL_CODE.toString() + ": " + cityPostalCode);
+                                }
+                                if (cityPostalCode <= 0) {
+                                    logger.info("Error: Number must be greater than 0 and a valid " + ParameterInput.CITY_POSTAL_CODE.toString() + ".");
+                                    logger.info("Known " + ParameterInput.CITY_POSTAL_CODE.toString() + "s: " + fileSrcDataFilter.getAllCityPostalCodes());
+                                } else {
+                                    String cityName = fileSrcDataFilter.getCityName(cityPostalCode);
+                                    if(cityName == null) {
+                                        logger.info("No cityname found with that code");
+                                    } else {
+                                        logger.info("Cityname with that code: '" + cityName + "'");
+                                        foundInputParameter.put(ParameterInput.CITY_POSTAL_CODE, true);
+                                    }
+                                }
+                            } else {
+                                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
+                                logger.info("Known " + ParameterInput.CITY_POSTAL_CODE.toString() + "s: " + fileSrcDataFilter.getAllCityPostalCodes());
+                            }
+                            break;
+                        case VEHICLE_FORM:
+                            if (NumberUtils.isDigits(parameter)) {
+                                vehicleForm = Integer.parseInt(parameter);
+                                if(showOtherinfo) {
+                                    logger.info("Input number for " + ParameterInput.VEHICLE_FORM_OPTION.toString() + ": " + vehicleForm);
+                                }
+                                if (vehicleForm <= 0) {
+                                    logger.info("Error: Number must be greater than 0 and smaller than 5.");
+                                } else {
+                                    logger.info("Calculated discount for " + ParameterInput.VEHICLE_FORM + ": " + fileSrcDataFilter.getDiscount(vehicleForm) + "%");
+                                    foundInputParameter.put(ParameterInput.VEHICLE_FORM, true);
+                                }
+                            } else {
+                                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
+                            }
+                            break;
+                    }
             }
+        }
+        /*
+        if(foundInputParameter.get(ParameterInput.EXPECTED_DISTANCE)
+                && foundInputParameter.get(ParameterInput.CITY_POSTAL_CODE)){
+            logger.info("You will have to pay " + fileSrcDataFilter.calculateOption(expectedDrivingDistance, cityPostalCode) + " € / month.");
+        }
+         */
+        if(foundInputParameter.size() >= 3
+                &&foundInputParameter.get(ParameterInput.EXPECTED_DISTANCE)
+                && foundInputParameter.get(ParameterInput.CITY_POSTAL_CODE)
+                && foundInputParameter.get(ParameterInput.VEHICLE_FORM)){
+            logger.info("You get the chance to save " + fileSrcDataFilter.calculateOption(expectedDrivingDistance, cityPostalCode, vehicleForm) + " % / month of your payment.");
         }
     }
 
@@ -129,7 +201,10 @@ public class Main extends DAO {
         } else {
             logger.info("");
         }
-        logger.info("Syntax: [-help | -h | -? | ?] [-print | print-data | print-all] [-distance <number for distance in km>] [plz <number for plz>]");
+        logger.info("Syntax: [-help | -h | -? | ?] [-print | print-data | print-all] "
+                + "[" + ParameterInput.EXPECTED_DISTANCE_OPTION.toString()  + " <number for " + ParameterInput.EXPECTED_DISTANCE.toString() +   " in km>] "
+                + "[" + ParameterInput.CITY_POSTAL_CODE_OPTION.toString()   + " <number for " + ParameterInput.CITY_POSTAL_CODE.toString() +    ">] "
+                + "[" + ParameterInput.VEHICLE_FORM_OPTION.toString()       + " <number for " + ParameterInput.VEHICLE_FORM.toString() +        " selection>]");
         logger.info("\t Options");
         logger.info("\t\t -h/-help/-?/?         show this help and exit");
         logger.info("\t\t -print | print-info   print info of stored data");
@@ -137,6 +212,8 @@ public class Main extends DAO {
         logger.info("\t\t -print-all            print data from database");
         logger.info("\t\t -distance             input expected driving distance per year in km (as next parameter [0-9]{1-})");
         logger.info("\t\t -plz                  input postal city code (as next parameter [0-9]{1-})");
+        logger.info("\t\t -form                 input vehicle form (as next parameter [1 / 2 / 3 / 4])");
+        logger.info("\t\t                       1 = small, 2 = combi, 3 = cabrio, 4 = tank)");
         logger.info("\nBye");
     }
 }

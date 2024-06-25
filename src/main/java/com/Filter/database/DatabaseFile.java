@@ -14,7 +14,8 @@ import main.java.com.Filter.Data.FileSrcData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class DatabaseFile extends Database implements Serializable{
+public class DatabaseFile
+        extends Database{
 
     int id;
 
@@ -26,33 +27,26 @@ public class DatabaseFile extends Database implements Serializable{
 
     boolean admin;
 
-    static Logger logger = LogManager.getLogger(DatabaseFile.class.getName());
+    final static Logger logger = LogManager.getLogger(DatabaseFile.class.getName());
 
-    public DatabaseFile()
-    {
+    public DatabaseFile(){
         path = System.getProperty("user.dir")+"/test";
         File dbFile = new File(path);
-        try
-        {
-            if(!dbFile.exists())
-            {
+        try{
+            if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
             connect();
-        }
-        catch(IOException e)
-        {
+        } catch(IOException e) {
             logger.error(e);
         }
     }
 
-    public DatabaseFile(int id, String name, String lastname, String pw, boolean admin)
-    {
+    public DatabaseFile(int id, String name, String lastname, String pw, boolean admin){
         path = System.getProperty("user.dir")+"/test";
         File dbFile = new File(path);
         try{
-            if(!dbFile.exists())
-            {
+            if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
         } catch(Exception e) {
@@ -72,8 +66,6 @@ public class DatabaseFile extends Database implements Serializable{
             Object obj;
             FileSrcData fileSrcData = new FileSrcData();
             while((obj = inFile.readObject()) != null){
-                db = new DatabaseFile();
-                db = (DatabaseFile)obj;
                 data.add(fileSrcData);
             }
             return data;
@@ -98,13 +90,8 @@ public class DatabaseFile extends Database implements Serializable{
     }
 
     @Override
-    public void insertData(List<FileSrcData> data) {
-
-    }
-
-    @Override
-    public void insertData(List<FileSrcData> data, boolean test) {
-
+    public boolean insertData(List<FileSrcData> data) {
+        return false;
     }
 
     @Override
@@ -119,6 +106,11 @@ public class DatabaseFile extends Database implements Serializable{
 
     @Override
     public String getCityByPostalCode(int postalCode) {
+        return null;
+    }
+
+    @Override
+    public List<Integer> getAllCityPostalCodes() {
         return null;
     }
 

@@ -2,10 +2,8 @@ package test.java.com.Filter;
 
 import main.java.com.Filter.Main;
 import main.java.com.Filter.database.Database;
-import main.java.com.Filter.database.DatabaseSQLite;
-import main.java.com.Filter.service.Filter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import main.java.com.Filter.database.DatabaseSqlite;
+import main.java.com.Filter.service.FileSrcDataFilter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,12 +16,15 @@ public class TestMain {
 
     static Main main;
 
+    static FileSrcDataFilter fileSrcDataFilter;
+
     @BeforeAll
     @DisplayName("Test Main: instance != null")
     public static void start()
             throws Exception {
         main = new Main();
         database = Database.getInstance();
+        fileSrcDataFilter = new FileSrcDataFilter(database);
     }
 
     @Test
@@ -34,39 +35,39 @@ public class TestMain {
     }
 
     @Test
-    @DisplayName("Test Filter: return null")
+    @DisplayName("Test FileSrcDataFilter: return null")
     public void testClassFilterReturnNull(){
-        assertEquals(Filter.getFactor(-1), 0);
+        assertEquals(fileSrcDataFilter.getFactorDrivingDistance(-1), 0);
     }
 
     @Test
-    @DisplayName("Test Filter: Parameter (1111) -> return number")
+    @DisplayName("Test FileSrcDataFilter: Parameter (1111) -> return number")
     public void testClassFilterReturnNumber(){
-        assertTrue(Filter.getFactor(1111) > 0);
+        assertTrue(fileSrcDataFilter.getFactorDrivingDistance(1111) > 0);
     }
 
     @Test
-    @DisplayName("Test Filter: Parameter (null, 0) -> return null")
+    @DisplayName("Test FileSrcDataFilter: Parameter (null, 0) -> return null")
     public void testClassFilterReturnCityNameNull(){
-        assertNull(Filter.getCityName(null, 0));
+        assertNull(fileSrcDataFilter.getCityName(0));
     }
 
     @Test
-    @DisplayName("Test Filter: Parameter (null, 99510) -> return null")
+    @DisplayName("Test FileSrcDataFilter: Parameter (null, 99510) -> return null")
     public void testClassFilterReturnCityNameNull2(){
-        assertNull(Filter.getCityName(null, 99510));
+        assertNull(fileSrcDataFilter.getCityName(99510));
     }
 
     @Test
-    @DisplayName("Test Filter: Parameter (?, 99510) -> return null")
+    @DisplayName("Test FileSrcDataFilter: Parameter (?, 99510) -> return null")
     public void testClassFilterReturnCityNameNotNull(){
-        assertNotNull(Filter.getCityName(Database.getInstance(), 99510));
+        assertNotNull(fileSrcDataFilter.getCityName(99510));
     }
 
     @Test
     @DisplayName("Test Database: start -> use type sqlite")
     public void testClassDatabaseReturnDB(){
-        assertInstanceOf(DatabaseSQLite.class, database);
+        assertInstanceOf(DatabaseSqlite.class, database);
     }
 
     @Test

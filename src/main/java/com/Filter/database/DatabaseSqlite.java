@@ -4,28 +4,27 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
 import main.java.com.Filter.service.Tools;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tech.tablesaw.api.Table;
 
-public class DatabaseSQLite extends Database{
-    String path = System.getProperty("user.dir")+"/database.db";
+public class DatabaseSqlite
+        extends Database{
 
     Connection connection = null;
 
-    boolean test = true;
+    final static Logger logger = LogManager.getLogger(DatabaseSqlite.class.getName());
 
-    static Logger logger = LogManager.getLogger(DatabaseSQLite.class.getName());
-
-    public DatabaseSQLite(){
-        File dbFile = new File(path);
+    public DatabaseSqlite(){
+        path = System.getProperty("user.dir")+"/database.sqlite";
         try{
+            File dbFile = new File(path);
             if(!dbFile.exists()){
                 dbFile.createNewFile();
             }
@@ -49,7 +48,7 @@ public class DatabaseSQLite extends Database{
 
     @Override
     public ArrayList<FileSrcData> getData(){
-        return getDataFromDB("SELECT * FROM " + Database.tableName + " limit " + LIMIT_PRINT_DATA + ";");
+        return getDataFromDB("SELECT * FROM " + Database.TABLE_NAME + " limit " + LIMIT_PRINT_DATA + ";");
     }
 
     /**
@@ -57,7 +56,7 @@ public class DatabaseSQLite extends Database{
      */
     @Override
     public ArrayList<FileSrcData> getAllData(){
-        return getDataFromDB("SELECT * FROM " + Database.tableName + ";");
+        return getDataFromDB("SELECT * FROM " + Database.TABLE_NAME + ";");
     }
 
     /**
@@ -69,7 +68,7 @@ public class DatabaseSQLite extends Database{
             //executeSet("remove from table test");
             //executeSet("drop database if exists test");
             //////////////////////////////
-            executeSet("create table if not exists " + DAO.tableName + " ("
+            executeSet("create table if not exists " + DAO.TABLE_NAME + " ("
                     + "id integer primary key autoincrement,"
                     + "ISO_3166_1_ALPHA_2 text,"
                     + "ISO_3166_1_ALPHA_2_REGION_CODE text,"
@@ -100,32 +99,21 @@ public class DatabaseSQLite extends Database{
     }
 
     @Override
-    public void insertData(List<FileSrcData> data) {
+    public boolean insertData(List<FileSrcData> data) {
         logger.info("Storing object to db ...");
         for(FileSrcData fileSrcData: data) {
-            insertData(fileSrcData);
-        }
-    }
-
-    @Override
-    public void insertData(List<FileSrcData> data, boolean test) {
-        logger.info("Storing object to db ...");
-        // to see progress ... (remove after test)
-        if(test) {
-            for (int i = 0; i < data.size(); i++) {
-                if (i % 1000 == 0) {
-                    logger.info("Storing object #"+i+" to db -> " + data.get(i).toString());
-                }
-                insertData(data.get(i));
+            if(! insertData(fileSrcData)){
+                return false;
             }
         }
+        return true;
     }
 
     @Override
     public int getCountOfData() {
         connect();
         if(dbTableExists()){
-            try(ResultSet resultSet = executeGet("select count(*) from " + tableName + ";");){
+            try(ResultSet resultSet = executeGet("select count(*) from " + TABLE_NAME + ";");){
                 if(resultSet != null && resultSet.next()){
                     return resultSet.getInt(1);
                 }
@@ -148,11 +136,25 @@ public class DatabaseSQLite extends Database{
     }
 
     @Override
-    public boolean insertData(FileSrcData fileSrcData)
-    {
+    public List<Integer> getAllCityPostalCodes() {
+        ResultSet resultSet = executeGet("select distinct POSTLEITZAHL from " + TABLE_NAME + " where POSTLEITZAHL != \"\";");
+        List<Integer> results = new ArrayList<>();
+        try{
+            while(resultSet != null && resultSet.next()){
+                results.add(resultSet.getInt(1));
+            }
+            close(resultSet);
+        } catch(SQLException e) {
+            logger.error(e);
+        }
+        return results;
+    }
+
+    @Override
+    public boolean insertData(FileSrcData fileSrcData){
         try {
             String sql = ""
-                    +" insert into " + DAO.tableName + " ("
+                    +" insert into " + DAO.TABLE_NAME + " ("
                     + "ISO_3166_1_ALPHA_2,"
                     + "ISO_3166_1_ALPHA_2_REGION_CODE,"
                     + "REGION1,"
@@ -199,7 +201,7 @@ public class DatabaseSQLite extends Database{
             stmt.execute();
             close(null);
         } catch (Exception e) {
-            logger.error("insert into " + DAO.tableName, e);
+            logger.error("insert into " + DAO.TABLE_NAME, e);
         }
         return false;
     }
@@ -210,7 +212,7 @@ public class DatabaseSQLite extends Database{
         logger.info("");
         try {
             Table table = Table.read()
-                    .db(executeGet("SELECT * FROM " + Database.tableName + "  limit " + countData + ";"));
+                    .db(executeGet("SELECT * FROM " + Database.TABLE_NAME + "  limit " + countData + ";"));
             logger.info(table.print());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -228,7 +230,7 @@ public class DatabaseSQLite extends Database{
         logger.info("");
         try {
             Table table = Table.read()
-                    .db(executeGet("SELECT * FROM " + Database.tableName + ";"));
+                    .db(executeGet("SELECT * FROM " + Database.TABLE_NAME + ";"));
             logger.info(table.print());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -265,7 +267,7 @@ public class DatabaseSQLite extends Database{
     boolean dbTableExists(){
         try {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
-            ResultSet resultSet = databaseMetaData.getTables(null, null, tableName, new String[] {"TABLE"});
+            ResultSet resultSet = databaseMetaData.getTables(null, null, TABLE_NAME, new String[] {"TABLE"});
             return resultSet.next();
         } catch (SQLException e) {
             logger.error(e);
@@ -354,7 +356,7 @@ public class DatabaseSQLite extends Database{
                         resultSet.getInt("CALC_LOCALE")
                 );
                 fileSrcData.setSOMMERZEIT(
-                        Tools.intToBoolean(resultSet.getInt("SOMMERZEIT"))
+                        Tools.toBoolean(resultSet.getInt("SOMMERZEIT"))
                 );
                 fileSrcData.setACTIVE(
                         resultSet.getString("ACTIVE")
@@ -369,12 +371,13 @@ public class DatabaseSQLite extends Database{
     }
 
     String getCityFromDB(int postalCode){
-        logger.info(getCityWherePostalCodeNotNull());
-        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL = " + postalCode + ";");
+        ResultSet resultSet = executeGet("select REGION4 from " + TABLE_NAME + " where POSTLEITZAHL = " + postalCode + ";");
         String result = null;
         try{
             if(resultSet != null && resultSet.next()){
-                result = resultSet.getString(1);
+                result = StringUtils.isNotBlank(resultSet.getString(1))
+                    ? resultSet.getString(1)
+                    : null;
             }
             close(resultSet);
         } catch(SQLException e) {
@@ -384,7 +387,7 @@ public class DatabaseSQLite extends Database{
     }
 
     List<String> getCityWherePostalCodeNotNull(){
-        ResultSet resultSet = executeGet("select REGION2 from " + tableName + " where POSTLEITZAHL != null;");
+        ResultSet resultSet = executeGet("select REGION2 from " + TABLE_NAME + " where POSTLEITZAHL != null;");
         List<String> result = new ArrayList<>();
         try{
             while(resultSet != null && resultSet.next()){

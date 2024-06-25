@@ -1,25 +1,22 @@
 package main.java.com.Filter.database;
 
-import java.sql.Connection;
 import java.util.*;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import main.java.com.Filter.Data.FileSrcData;
 import main.java.com.Filter.database.DAO.DAO;
-import main.java.com.Filter.database.Interfaces.DatabaseInterface;
+import main.java.com.Filter.database.Interfaces.IDatabase;
 import main.java.com.Filter.service.Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@NoArgsConstructor
 @Getter
 @Setter
 public abstract class Database
         extends DAO
-        implements DatabaseInterface
-{
+        implements IDatabase{
+
     static Logger logger = LogManager.getLogger(Database.class.getName());
 
     static DatabaseType databaseType;
@@ -38,12 +35,6 @@ public abstract class Database
         }
     };
 
-    protected Connection connection;
-
-    protected String serverIp;
-
-    protected String path;
-
     /**
      * get instance
      * @return
@@ -61,23 +52,23 @@ public abstract class Database
     public static Database getInstance(DatabaseType source){
         return switch (source) {
             case file -> new DatabaseFile();
-            case sqlite -> new DatabaseSQLite();
+            case sqlite -> new DatabaseSqlite();
             default -> {
-                logger.info("Not supported yet: source '" + source.value + "'. Using '" + DatabaseType.sqlite + "'.");
-                yield new DatabaseSQLite();
+                logger.info("Not supported: source '" + source.value + "'. Using '" + DatabaseType.sqlite + "'.");
+                yield new DatabaseSqlite();
             }
         };
     }
 
     public DataSrc initDataSrc(Database database){
         if(database.isDBEmpty()) {
-            List<FileSrcData> fileSrcData = Tools.getDataFromFile(fileNameSrc);
+            List<FileSrcData> fileSrcData = Tools.getDataFromFile(FILE_NAME_SRC);
             if(fileSrcData == null || fileSrcData.isEmpty()){
                 logger.error(DataSrc.SRC_FILE_NOT_FOUND.toString());
                 return DataSrc.SRC_FILE_NOT_FOUND;
             } else {
                 if(database.createDatabaseIfNotExists()){
-                    database.insertData(fileSrcData, true);
+                    database.insertData(fileSrcData);
                     return DataSrc.OK;
                 } else {
                     logger.error(DataSrc.DB_DOES_NOT_EXIST.toString());
@@ -85,26 +76,46 @@ public abstract class Database
                 }
             }
         } else {
-            logger.info("Database knows " + database.getCountOfData() + " data");
+            if(showOtherinfo) {
+                logger.info("Database knows " + database.getCountOfData() + " data");
+            }
             return DataSrc.OK;
         }
     }
 
+    @Override
     public abstract void connect();
 
+    @Override
     public abstract boolean createDatabaseIfNotExists();
 
+    @Override
     public abstract ArrayList<FileSrcData> getData();
 
+    @Override
     public abstract ArrayList<FileSrcData> getAllData();
 
-    public abstract void insertData(List<FileSrcData> data);
+    @Override
+    public abstract boolean insertData(List<FileSrcData> data);
 
-    public abstract void insertData(List<FileSrcData> data, boolean test);
-
+    @Override
     public abstract int getCountOfData();
+
+    @Override
+    public abstract void printInfo();
+
+    @Override
+    public abstract void printData();
+
+    @Override
+    public abstract void printAllData();
+
+    @Override
+    public abstract boolean isDBEmpty();
 
     public abstract int getCalcFactor(int cityPostalCode);
 
     public abstract String getCityByPostalCode(int postalCode);
+
+    public abstract List<Integer> getAllCityPostalCodes();
 }
