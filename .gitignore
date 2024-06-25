@@ -1,6 +1,6 @@
 /bin/
 /target/
-database.db
+database.sqlite
 favicon.ico
 .classpath
 .settings
