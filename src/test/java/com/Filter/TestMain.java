@@ -37,13 +37,13 @@ public class TestMain {
     @Test
     @DisplayName("Test FileSrcDataFilter: return null")
     public void testClassFilterReturnNull(){
-        assertEquals(FileSrcDataFilter.getFactor(-1), 0);
+        assertEquals(fileSrcDataFilter.getFactorDrivingDistance(-1), 0);
     }
 
     @Test
     @DisplayName("Test FileSrcDataFilter: Parameter (1111) -> return number")
     public void testClassFilterReturnNumber(){
-        assertTrue(FileSrcDataFilter.getFactor(1111) > 0);
+        assertTrue(fileSrcDataFilter.getFactorDrivingDistance(1111) > 0);
     }
 
     @Test

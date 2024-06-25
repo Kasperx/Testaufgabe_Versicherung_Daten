@@ -25,7 +25,9 @@ public class DAO{
         EXPECTED_DISTANCE("expected driving distance"),
         EXPECTED_DISTANCE_OPTION("-distance"),
         CITY_POSTAL_CODE("city postal code"),
-        CITY_POSTAL_CODE_OPTION("-plz");
+        CITY_POSTAL_CODE_OPTION("-plz"),
+        VEHICLE_FORM("vehicle form"),
+        VEHICLE_FORM_OPTION("-form");
 
         private final String value;
 

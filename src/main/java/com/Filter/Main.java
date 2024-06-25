@@ -9,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class Main extends DAO {
 
@@ -18,6 +17,7 @@ public class Main extends DAO {
     static HashMap<ParameterInput, Boolean> foundInputParameter = new HashMap<>(){{
             put(ParameterInput.EXPECTED_DISTANCE, false);
             put(ParameterInput.CITY_POSTAL_CODE, false);
+            put(ParameterInput.VEHICLE_FORM, false);
     }};
 
     static FileSrcDataFilter fileSrcDataFilter;
@@ -62,10 +62,13 @@ public class Main extends DAO {
                 System.exit(0);
             } if(args[i].equalsIgnoreCase(ParameterInput.EXPECTED_DISTANCE_OPTION.toString())){
                 foundSomething = true;
-                filterParameter(ParameterInput.EXPECTED_DISTANCE, database, args, i);
+                filterParameter(ParameterInput.EXPECTED_DISTANCE, args, i);
             } if(args[i].equalsIgnoreCase(ParameterInput.CITY_POSTAL_CODE_OPTION.toString())){
                 foundSomething = true;
-                filterParameter(ParameterInput.CITY_POSTAL_CODE, database, args, i);
+                filterParameter(ParameterInput.CITY_POSTAL_CODE, args, i);
+            } if(args[i].equalsIgnoreCase(ParameterInput.VEHICLE_FORM_OPTION.toString())){
+                foundSomething = true;
+                filterParameter(ParameterInput.VEHICLE_FORM, args, i);
             }
         }
         // Show info (invalid parameter) if input is not known
@@ -88,16 +91,19 @@ public class Main extends DAO {
         }
     }
 
-    static void filterParameter(ParameterInput input, Database database, String[] args, int position){
+    static void filterParameter(ParameterInput input, String[] args, int position){
         if(showOtherinfo) {
             logger.info("Found option for " + input.toString() + " = '" +
                     (input == ParameterInput.CITY_POSTAL_CODE
                             ? ParameterInput.CITY_POSTAL_CODE_OPTION.toString()
-                            : ParameterInput.EXPECTED_DISTANCE_OPTION.toString())
+                            : input == ParameterInput.EXPECTED_DISTANCE
+                                    ? ParameterInput.EXPECTED_DISTANCE_OPTION.toString()
+                                    : ParameterInput.VEHICLE_FORM_OPTION.toString())
                     + "'.");
         }
-        int expectedDrivingDistance = 0;
-        int cityPostalCode = 0;
+        int expectedDrivingDistance = -1;
+        int cityPostalCode = -1;
+        int vehicleForm = -1;
         if(isLastPosition(args, position)) {
             logger.error("Error: Number for " + input.toString() + " missing.");
             showHelp();
@@ -116,7 +122,7 @@ public class Main extends DAO {
                                 if (expectedDrivingDistance < 0) {
                                     logger.info("Error: Number must be greater than 0.");
                                 } else {
-                                    logger.info("Calculated factor: " + FileSrcDataFilter.getFactor(expectedDrivingDistance));
+                                    logger.info("Calculated factor for " + ParameterInput.EXPECTED_DISTANCE + ": " + fileSrcDataFilter.getFactorDrivingDistance(expectedDrivingDistance));
                                     foundInputParameter.put(ParameterInput.EXPECTED_DISTANCE, true);
                                 }
                             } else {
@@ -146,12 +152,36 @@ public class Main extends DAO {
                                 logger.info("Known " + ParameterInput.CITY_POSTAL_CODE.toString() + "s: " + fileSrcDataFilter.getAllCityPostalCodes());
                             }
                             break;
+                        case VEHICLE_FORM:
+                            if (NumberUtils.isDigits(parameter)) {
+                                vehicleForm = Integer.parseInt(parameter);
+                                if(showOtherinfo) {
+                                    logger.info("Input number for " + ParameterInput.VEHICLE_FORM_OPTION.toString() + ": " + vehicleForm);
+                                }
+                                if (vehicleForm <= 0) {
+                                    logger.info("Error: Number must be greater than 0 and smaller than 5.");
+                                } else {
+                                    logger.info("Calculated discount for " + ParameterInput.VEHICLE_FORM + ": " + fileSrcDataFilter.getDiscount(vehicleForm) + "%");
+                                    foundInputParameter.put(ParameterInput.VEHICLE_FORM, true);
+                                }
+                            } else {
+                                logger.info("Error: Parameter is '" + parameter + "': must be a number.");
+                            }
+                            break;
                     }
             }
         }
+        /*
         if(foundInputParameter.get(ParameterInput.EXPECTED_DISTANCE)
                 && foundInputParameter.get(ParameterInput.CITY_POSTAL_CODE)){
             logger.info("You will have to pay " + fileSrcDataFilter.calculateOption(expectedDrivingDistance, cityPostalCode) + " € / month.");
+        }
+         */
+        if(foundInputParameter.size() >= 3
+                &&foundInputParameter.get(ParameterInput.EXPECTED_DISTANCE)
+                && foundInputParameter.get(ParameterInput.CITY_POSTAL_CODE)
+                && foundInputParameter.get(ParameterInput.VEHICLE_FORM)){
+            logger.info("You get the chance to save " + fileSrcDataFilter.calculateOption(expectedDrivingDistance, cityPostalCode, vehicleForm) + " % / month of your payment.");
         }
     }
 
@@ -171,7 +201,10 @@ public class Main extends DAO {
         } else {
             logger.info("");
         }
-        logger.info("Syntax: [-help | -h | -? | ?] [-print | print-data | print-all] [-distance <number for distance in km>] [plz <number for plz>]");
+        logger.info("Syntax: [-help | -h | -? | ?] [-print | print-data | print-all] "
+                + "[" + ParameterInput.EXPECTED_DISTANCE_OPTION.toString()  + " <number for " + ParameterInput.EXPECTED_DISTANCE.toString() +   " in km>] "
+                + "[" + ParameterInput.CITY_POSTAL_CODE_OPTION.toString()   + " <number for " + ParameterInput.CITY_POSTAL_CODE.toString() +    ">] "
+                + "[" + ParameterInput.VEHICLE_FORM_OPTION.toString()       + " <number for " + ParameterInput.VEHICLE_FORM.toString() +        " selection>]");
         logger.info("\t Options");
         logger.info("\t\t -h/-help/-?/?         show this help and exit");
         logger.info("\t\t -print | print-info   print info of stored data");
@@ -179,6 +212,8 @@ public class Main extends DAO {
         logger.info("\t\t -print-all            print data from database");
         logger.info("\t\t -distance             input expected driving distance per year in km (as next parameter [0-9]{1-})");
         logger.info("\t\t -plz                  input postal city code (as next parameter [0-9]{1-})");
+        logger.info("\t\t -form                 input vehicle form (as next parameter [1 / 2 / 3 / 4])");
+        logger.info("\t\t                       1 = small, 2 = combi, 3 = cabrio, 4 = tank)");
         logger.info("\nBye");
     }
 }
